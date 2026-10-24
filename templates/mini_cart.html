@@ -1,0 +1,48 @@
+<!-- mini_cart.html -->
+{% if cart and cart.items.exists %}
+<ul class="mini-products-list">
+    {% for item in cart.items.all|slice:":5" %}
+    <li class="item" id="cart-item-{{ item.id }}">
+        <a class="product-image" href="{{ item.product.get_absolute_url }}">
+            <img src="{% if item.product.primary_image %}{{ item.product.primary_image.url }}{% else %}{% static 'images/product-images/default.jpg' %}{% endif %}" alt="{{ item.product.name }}" />
+        </a>
+        <div class="product-details">
+            <a href="#" class="remove" onclick="removeCartItem(this, {{ item.id }}); return false;">
+                <i class="anm anm-times-l" aria-hidden="true"></i>
+            </a>
+            <a class="pName" href="{{ item.product.get_absolute_url }}">{{ item.product.name }}</a>
+            {% if item.variant %}<div class="variant-cart">{{ item.variant.name }}</div>{% endif %}
+            <div class="wrapQtyBtn">
+                <div class="qtyField">
+                    <span class="label">Qty:</span>
+                    <a class="qtyBtn minus" href="javascript:void(0);" onclick="updateCartItem(this, {{ item.id }}, 'minus')">
+                        <i class="fa anm anm-minus-r" aria-hidden="true"></i>
+                    </a>
+                    <input type="text" value="{{ item.quantity }}" class="product-form__input qty" id="cart-qty-{{ item.id }}" readonly>
+                    <a class="qtyBtn plus" href="javascript:void(0);" onclick="updateCartItem(this, {{ item.id }}, 'plus')">
+                        <i class="fa anm anm-plus-r" aria-hidden="true"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="priceRow">
+                <div class="product-price">
+                    <span class="money">₨{{ item.price }}</span>
+                </div>
+            </div>
+        </div>
+    </li>
+    {% endfor %}
+</ul>
+<div class="total">
+    <div class="total-in">
+        <span class="label">Cart Subtotal:</span>
+        <span class="product-price"><span class="money">₨{{ cart.subtotal|default:"0.00" }}</span></span>
+    </div>
+    <div class="buttonSet text-center">
+        <a href="{% url 'cart' %}" class="btn btn-secondary btn--small">View Cart</a>
+        <a href="{% url 'checkout' %}" class="btn btn-secondary btn--small">Checkout</a>
+    </div>
+</div>
+{% else %}
+<div class="text-center p-3"><p>Your cart is empty</p></div>
+{% endif %}

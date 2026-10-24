@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+{% load static %}
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    
+    <!-- Title Tags with SEO Structure -->
+    <title>FAQs - {{ site_settings.site_name|default:"Belle" }} | Frequently Asked Questions</title>
+    <meta name="title" content="FAQs - {{ site_settings.site_name|default:'Belle' }}">
+    <meta name="description" content="Find answers to frequently asked questions about {{ site_settings.site_name|default:'Belle' }}. Shipping, returns, payments, orders & more. ✓Quick answers ✓24/7 Help">
+    
+    <!-- Open Graph / Social Media Meta Tags -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta property="og:title" content="FAQs - {{ site_settings.site_name|default:'Belle' }} | Help Center">
+    <meta property="og:description" content="Got questions? We have answers. Browse our FAQ section for help with orders, shipping, returns & payments.">
+    <meta property="og:image" content="{% static 'images/logo.svg' %}">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="FAQs - {{ site_settings.site_name|default:'Belle' }}">
+    <meta name="twitter:description" content="Find quick answers to common questions about shopping, shipping & returns.">
+    <meta name="twitter:image" content="{% static 'images/logo.svg' %}">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="{{ request.build_absolute_uri }}">
+    
+    <!-- Keywords -->
+    <meta name="keywords" content="FAQs, frequently asked questions, help center, shipping questions, return policy, payment help">
+    
+    <!-- Robots -->
+    <meta name="robots" content="index, follow">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="{% if site_settings.favicon %}{{ site_settings.favicon.url }}{% else %}{% static 'images/favicon.png' %}{% endif %}" />
+    
+    <!-- Plugins CSS -->
+    <link rel="stylesheet" href="{% static 'css/plugins.css' %}">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <!-- Main Style CSS -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/responsive.css' %}"> 
+    <style>
+        /* Logo max-width control */
+        .logo img {
+            max-width: 30%;
+        }
+
+        @media (max-width: 768px) {
+            .logo img {
+                max-width: 25%;
+            }
+        }
+        /* Notification Popup Styles */
+        #cart-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 300px;
+            color: white;
+        }
+        
+        .cart-notification-msg {
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+    </style>
+</head>
+
+<body class="page-template belle">
+    <!-- Add pre-loader -->
+    <div id="pre-loader">
+        <img src="{% static 'images/loader.gif' %}" alt="Loading..." />
+    </div>
+    <div class="pageWrapper">
+        <!--Search Form Drawer-->
+        <div class="search">
+            <div class="search__form">
+                <form class="search-bar__form" action="{% url 'shop' %}" method="GET">
+                    <button class="go-btn search__button" type="submit"><i class="icon anm anm-search-l"></i></button>
+                    <input class="search__input" type="search" name="q" value="" placeholder="Search entire store..."
+                        aria-label="Search" autocomplete="off" id="search-input">
+                </form>
+                <button type="button" class="search-trigger close-btn"><i class="icon anm anm-times-l"></i></button>
+            </div>
+        </div>
+        <!--End Search Form Drawer-->
+        <!--Top Header-->
+        <div class="top-header">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-10 col-sm-8 col-md-5 col-lg-4">
+                        <div class="currency-picker">
+                            <span class="selected-currency">PKR</span>
+                        </div>
+                        <div class="language-dropdown">
+                            <span class="language-dd">English</span>
+                        </div>
+                        <p class="phone-no"><i class="anm anm-phone-s"></i>
+                            {{ site_settings.phone|default:"+440 0(111)044 833" }}</p>
+                    </div>
+                    <div class="col-sm-4 col-md-4 col-lg-4 d-none d-lg-none d-md-block d-lg-block">
+                        <div class="text-center">
+                            <p class="top-header_middle-text">Countrywide Express Shipping</p>
+                        </div>
+                    </div>
+                    <div class="col-2 col-sm-4 col-md-3 col-lg-4 text-right">
+                        <span class="user-menu d-block d-lg-none"><i class="anm anm-user-al"
+                                aria-hidden="true"></i></span>
+                        <ul class="customer-links list-inline">
+                            {% if user.is_authenticated %}
+                            <li><a href="{% url 'my_account' %}"><i class="anm anm-user-al"></i> {{ user.username }}</a>
+                            </li>
+                            <li><a href="{% url 'track_order' %}"><i class="anm anm-truck-l"></i> Track Order</a></li>
+                            <li><a href="{% url 'logout' %}"><i class="anm anm-sign-out-l"></i> Logout</a></li>
+                            {% else %}
+                            <li><a href="{% url 'login' %}"><i class="anm anm-sign-in-l"></i> Login</a></li>
+                            <li><a href="{% url 'register' %}"><i class="anm anm-user-plus-l"></i> Register</a></li>
+                            {% endif %}
+                            <li><a href="{% url 'wishlist' %}"><i class="anm anm-heart-l"></i> Wishlist</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--End Top Header-->
+        <!--Header-->
+        <div class="header-wrap animated d-flex">
+            <div class="container-fluid">
+                <div class="container-fluid">
+                <div class="row align-items-center">
+                    <div class="logo col-md-2 col-lg-2 d-none d-lg-block">
+                        <a href="{% url 'home' %}" style="display: flex; align-items: center; text-decoration: none;">
+                            <img src="{% if site_settings.logo %}{{ site_settings.logo.url }}{% else %}{% static 'images/logo.svg' %}{% endif %}"
+                                alt="{{ site_settings.site_name }}" title="{{ site_settings.site_name }}" 
+                                style="max-width: 50px; margin-right: 10px;" />
+                            <span style="font-size: 18px; font-weight: 700; color: #333; letter-spacing: 1px; white-space: nowrap;">
+                                VERITY BAZAR
+                            </span>
+                        </a>
+                    </div>
+                    <div class="col-2 col-sm-3 col-md-3 col-lg-8">
+                        <div class="d-block d-lg-none">
+                            <button type="button" class="btn--link site-header__menu js-mobile-nav-toggle mobile-nav--open">
+                                <i class="icon anm anm-times-l"></i>
+                                <i class="anm anm-bars-r"></i>
+                            </button>
+                        </div>
+                        <nav class="grid__item" id="AccessibleNav">
+                            <ul id="siteNav" class="site-nav medium center hidearrow">
+                                <!-- Home -->
+                                <li class="lvl1"><a href="{% url 'home' %}">Home</a></li>
+            
+                                <!-- Shop with Mega Menu (exact same style as original) -->
+                                <li class="lvl1 parent megamenu">
+                                    <a href="{% url 'shop' %}">Shop <i class="anm anm-angle-down-l"></i></a>
+                                    <div class="megamenu style1">
+                                        <ul class="grid mmWrapper">
+                                            <li class="grid__item large-up--one-whole">
+                                                <ul class="grid">
+                                                    <li class="grid__item lvl-1 col-md-4 col-lg-4">
+                                                        <a href="#" class="site-nav lvl-1">Shop by Category</a>
+                                                        <ul class="subLinks">
+                                                            {% for category in categories|slice:":8" %}
+                                                            <li class="lvl-2"><a
+                                                                    href="{% url 'shop' %}?category={{ category.slug }}"
+                                                                    class="site-nav lvl-2">{{ category.name }}</a></li>
+                                                            {% endfor %}
+                                                            <li class="lvl-2"><a href="{% url 'shop' %}" class="site-nav lvl-2">View
+                                                                    All →</a></li>
+                                                        </ul>
+                                                    </li>
+                                                    <li class="grid__item lvl-1 col-md-4 col-lg-4">
+                                                        <a href="#" class="site-nav lvl-1">Shop by Price</a>
+                                                        <ul class="subLinks">
+                                                            <li class="lvl-2"><a href="{% url 'shop' %}?min_price=0&max_price=50"
+                                                                    class="site-nav lvl-2">Under ₨50</a></li>
+                                                            <li class="lvl-2"><a href="{% url 'shop' %}?min_price=50&max_price=100"
+                                                                    class="site-nav lvl-2">₨50 - ₨100</a></li>
+                                                            <li class="lvl-2"><a href="{% url 'shop' %}?min_price=100&max_price=200"
+                                                                    class="site-nav lvl-2">₨100 - ₨200</a></li>
+                                                            <li class="lvl-2"><a href="{% url 'shop' %}?min_price=200"
+                                                                    class="site-nav lvl-2">₨200 & Above</a></li>
+                                                        </ul>
+                                                    </li>
+                                                    <li class="grid__item lvl-1 col-md-4 col-lg-4">
+                                                        <a href="#" class="site-nav lvl-1">Shop by Label</a>
+                                                        <ul class="subLinks">
+                                                            <li class="lvl-2"><a href="{% url 'shop' %}?on_sale=true"
+                                                                    class="site-nav lvl-2">On Sale <span
+                                                                        class="lbl nm_label1">Hot</span></a></li>
+                                                            <li class="lvl-2"><a href="{% url 'shop' %}?featured=true"
+                                                                    class="site-nav lvl-2">Featured</a></li>
+                                                            <li class="lvl-2"><a href="{% url 'shop' %}?best_selling=true"
+                                                                    class="site-nav lvl-2">Best Selling</a></li>
+                                                            <li class="lvl-2"><a href="{% url 'shop' %}?new_arrival=true"
+                                                                    class="site-nav lvl-2">New Arrivals <span
+                                                                        class="lbl nm_label2">New</span></a></li>
+                                                        </ul>
+                                                    </li>
+                                                </ul>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </li>
+            
+                                <!-- Track Order -->
+                                <li class="lvl1"><a href="{% url 'track_order' %}">Track Order</a></li>
+            
+                                <!-- Compare -->
+                                <li class="lvl1"><a href="{% url 'compare' %}">Compare Product</a></li>
+            
+                                <!-- Pages Dropdown -->
+                                <li class="lvl1 parent dropdown">
+                                    <a href="#">Pages <i class="anm anm-angle-down-l"></i></a>
+                                    <ul class="dropdown">
+                                        <li><a href="{% url 'cart' %}" class="site-nav">Cart Page</a></li>
+                                        <li><a href="{% url 'checkout' %}" class="site-nav">Checkout</a></li>
+                                        <li><a href="{% url 'about_us' %}" class="site-nav">About Us <span
+                                                    class="lbl nm_label1">New</span></a></li>
+                                        <li><a href="{% url 'contact_us' %}" class="site-nav">Contact Us</a></li>
+                                        <li><a href="{% url 'faqs' %}" class="site-nav">FAQs</a></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                    <!-- Mobile Logo -->
+                    <div class="col-6 col-sm-6 col-md-6 col-lg-2 d-block d-lg-none mobile-logo">
+                        <div class="logo">
+                            <a href="{% url 'home' %}" style="display: flex; align-items: center; text-decoration: none;">
+                                <img src="{% if site_settings.logo %}{{ site_settings.logo.url }}{% else %}{% static 'images/logo.svg' %}{% endif %}"
+                                    alt="{{ site_settings.site_name }}" 
+                                    style="max-width: 40px; margin-right: 8px;" />
+                                <span style="font-size: 16px; font-weight: 700; color: #333; letter-spacing: 1px; white-space: nowrap;">
+                                    VERITY BAZAR
+                                </span>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-4 col-sm-3 col-md-3 col-lg-2">
+                        <div class="site-cart">
+                            <a href="{% url 'cart' %}" class="site-header__cart" title="Cart">
+                                <i class="icon anm anm-bag-l"></i>
+                                <span id="CartCount" class="site-header__cart-count">{{ cart_count|default:0 }}</span>
+                            </a>
+                            <!-- Minicart Popup -->
+                            <div id="header-cart" class="block block-cart">
+                                {% if cart and cart.items.exists %}
+                                <ul class="mini-products-list">
+                                    {% for item in cart.items.all|slice:":5" %}
+                                    <li class="item" id="cart-item-{{ item.id }}">
+                                        <a class="product-image" href="{{ item.product.get_absolute_url }}">
+                                            <img src="{% if item.product.primary_image %}{{ item.product.primary_image.url }}{% else %}{% static 'images/product-images/default.jpg' %}{% endif %}"
+                                                alt="{{ item.product.name }}" />
+                                        </a>
+                                        <div class="product-details">
+                                            <a href="#" class="remove"
+                                                onclick="removeCartItem(this, {{ item.id }}); return false;">
+                                                <i class="anm anm-times-l" aria-hidden="true"></i>
+                                            </a>
+                                            <a class="pName" href="{{ item.product.get_absolute_url }}">
+                                                {{ item.product.name }}
+                                            </a>
+                                            {% if item.variant %}
+                                            <div class="variant-cart">
+                                                {% if item.variant.size %}
+                                                <span class="cart-size">Size: {{ item.variant.size }}</span>
+                                                {% endif %}
+                                                <br>
+                                                {% if item.variant.color %}
+                                                <span class="cart-color">Color: {{ item.variant.color }}</span>
+                                                {% endif %}
+                                            </div>
+                                            {% endif %}
+                                            <div class="wrapQtyBtn">
+                                                <div class="qtyField">
+                                                    <span class="label">Qty:</span>
+                                                    <a class="qtyBtn minus" href="javascript:void(0);"
+                                                        onclick="updateCartItem(this, {{ item.id }}, 'minus')">
+                                                        <i class="fa anm anm-minus-r" aria-hidden="true"></i>
+                                                    </a>
+                                                    <input type="text" value="{{ item.quantity }}"
+                                                        class="product-form__input qty" id="cart-qty-{{ item.id }}"
+                                                        readonly>
+                                                    <a class="qtyBtn plus" href="javascript:void(0);"
+                                                        onclick="updateCartItem(this, {{ item.id }}, 'plus')">
+                                                        <i class="fa anm anm-plus-r" aria-hidden="true"></i>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                            <div class="priceRow">
+                                                <div class="product-price">
+                                                    <!-- IMPORTANT: Show UNIT PRICE here, not total -->
+                                                    <span class="money">Rs {{ item.unit_price|default:item.price }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                                <div class="total">
+                                    <div class="total-in">
+                                        <span class="label">Cart Subtotal:</span>
+                                        <span class="product-price"><span class="money">Rs {{ cart.subtotal }}</span></span>
+                                    </div>
+                                    <div class="buttonSet text-center">
+                                        <a href="{% url 'cart' %}" class="btn btn-secondary btn--small">View Cart</a>
+                                        <a href="{% url 'checkout' %}" class="btn btn-secondary btn--small">Checkout</a>
+                                    </div>
+                                </div>
+                                {% else %}
+                                <div class="text-center p-3">
+                                    <p>Your cart is empty</p>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <!-- End Minicart Popup -->
+                        </div>
+                        <div class="site-header__search">
+                            <button type="button" class="search-trigger"><i class="icon anm anm-search-l"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </div>
+        </div>
+        <!--End Header-->
+        <!--Mobile Menu-->
+        <div class="mobile-nav-wrapper" role="navigation">
+            <div class="closemobileMenu"><i class="icon anm anm-times-l pull-right"></i> Close Menu</div>
+            <ul id="MobileNav" class="mobile-nav">
+                <!-- Home -->
+                <li class="lvl1"><a href="{% url 'home' %}">Home</a></li>
+                
+                <!-- Shop with Categories -->
+                <li class="lvl1 parent megamenu">
+                    <a href="{% url 'shop' %}">Shop <i class="anm anm-plus-l"></i></a>
+                    <ul>
+                        <li><a href="{% url 'shop' %}" class="site-nav">All Products</a></li>
+                        {% for category in categories %}
+                        <li><a href="{% url 'shop' %}?category={{ category.slug }}" class="site-nav">{{ category.name }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </li>
+                
+                <!-- Track Order -->
+                <li class="lvl1"><a href="{% url 'track_order' %}">Track Order</a></li>
+                
+                <!-- Compare -->
+                <li class="lvl1"><a href="{% url 'compare' %}">Compare Product</a></li>
+                
+                <!-- Pages -->
+                <li class="lvl1 parent megamenu">
+                    <a href="#">Pages <i class="anm anm-plus-l"></i></a>
+                    <ul>
+                        <li><a href="{% url 'cart' %}" class="site-nav">Cart Page</a></li>
+                        <li><a href="{% url 'checkout' %}" class="site-nav">Checkout</a></li>
+                        <li><a href="{% url 'about_us' %}" class="site-nav">About Us</a></li>
+                        <li><a href="{% url 'contact_us' %}" class="site-nav">Contact Us</a></li>
+                        <li><a href="{% url 'faqs' %}" class="site-nav">FAQs</a></li>
+                        <li><a href="{% url 'wishlist' %}" class="site-nav">Wishlist</a></li>
+                    </ul>
+                </li>
+                
+                <!-- User Menu (Mobile only) -->
+                {% if user.is_authenticated %}
+                <li class="lvl1"><a href="{% url 'my_account' %}"><i class="anm anm-user-al"></i> {{ user.username }}</a></li>
+                <li class="lvl1"><a href="{% url 'logout' %}"><i class="anm anm-sign-out-l"></i> Logout</a></li>
+                {% else %}
+                <li class="lvl1"><a href="{% url 'login' %}"><i class="anm anm-sign-in-l"></i> Login</a></li>
+                <li class="lvl1"><a href="{% url 'register' %}"><i class="anm anm-user-plus-l"></i> Register</a></li>
+                {% endif %}
+            </ul>
+        </div>
+        <!--End Mobile Menu-->
+
+        <!--Body Content-->
+        <div id="page-content">
+            <!--Page Title-->
+            <div class="page section-header text-center">
+                <div class="page-title">
+                    <div class="wrapper">
+                        <h1 class="page-width">FAQs</h1>
+                    </div>
+                </div>
+            </div>
+            <div class="container">
+                <div class="row">
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-12 main-col">
+                        <div id="accordionExample">
+                            <h2 class="title h2">Pyment and Returns</h2>
+                            <div class="faq-body">
+                                <h4 class="panel-title" data-toggle="collapse" data-target="#collapseOne"
+                                    aria-expanded="false" aria-controls="collapseOne">What is Lorem Ipsum?</h4>
+                                <div id="collapseOne" class="collapse panel-content" data-parent="#accordionExample">
+                                    Nullam sed neque luctus, maximus diam sed, facilisis orci. Nunc ultricies neque a
+                                    aliquam sollicitudin. Vivamus sit amet finibus sapien. Duis est dui, sodales nec
+                                    pretium a, interdum in lacus. Sed et est vel velit vestibulum tincidunt non a felis.
+                                    Phasellus convallis, diam eu facilisis tincidunt, ex nibh vulputate dolor, eu
+                                    maximus massa libero vel eros. In vulputate metus lacus, eu vehicula dolor feugiat
+                                    id. Nulla vitae nisl in ex consequat porttitor vel a lectus. Vestibulum viverra in
+                                    velit ac consequat. Nullam porta nulla eu dignissim cursus.</div>
+                            </div>
+                            <div class="faq-body">
+                                <h4 class="panel-title" data-toggle="collapse" data-target="#collapseTwo"
+                                    aria-expanded="false" aria-controls="collapseTwo">Why do we use it?</h4>
+                                <div id="collapseTwo" class="collapse panel-content">Cras non gravida urna. Ut venenatis
+                                    nulla in tellus lobortis, vel mollis lectus condimentum. Duis elementum sapien
+                                    purus, et sagittis nulla efficitur in. Phasellus vitae eros sed nisi fringilla
+                                    auctor nec quis nunc. Pellentesque habitant morbi tristique senectus et netus et
+                                    malesuada fames ac turpis egestas. Pellentesque rutrum faucibus nibh vitae
+                                    fermentum. Aliquam commodo sem sit amet malesuada consectetur. Ut sit amet
+                                    vestibulum diam. Etiam quis dictum turpis, eget condimentum velit. Sed cursus odio
+                                    dapibus, consectetur massa sit amet, fringilla purus.</div>
+                            </div>
+                            <div class="faq-body">
+                                <h4 class="panel-title" data-toggle="collapse" data-target="#collapseThree"
+                                    aria-expanded="false" aria-controls="collapseThree">How to use this template?</h4>
+                                <div class="panel-content collapse" id="collapseThree">Duis nec nisi id ligula dapibus
+                                    maximus nec eu dui. Proin ornare, ipsum vitae tincidunt rutrum, diam neque accumsan
+                                    turpis, a dignissim nisi libero non lacus. Nulla quis massa nulla. Morbi metus
+                                    lacus, sagittis sed est vel, aliquet ultrices nibh. Morbi auctor ex eget egestas
+                                    auctor.</div>
+                            </div>
+                            <h2 class="title h2">Other Resources</h2>
+                            <div class="faq-body">
+                                <h4 class="panel-title" data-toggle="collapse" data-target="#collapseFour"
+                                    aria-expanded="false" aria-controls="collapseFour">Integer et erat quis ante
+                                    tristique lobortis at vel lorem.</h4>
+                                <div class="panel-content collapse" id="collapseFour">Proin varius magna rhoncus quam
+                                    egestas, id faucibus eros viverra. Suspendisse id ipsum at leo congue feugiat non
+                                    faucibus enim. Suspendisse non hendrerit lorem. Phasellus sit amet nisi dui. Aliquam
+                                    erat volutpat. Integer facilisis lacus est, a semper felis iaculis vel. Pellentesque
+                                    ultrices lorem sed arcu ornare iaculis. Ut pellentesque a dolor ac iaculis. Nullam
+                                    ac rutrum urna. Ut tempor tempus tincidunt. Sed facilisis ante sed tellus malesuada
+                                    fermentum.</div>
+                            </div>
+                            <div class="faq-body">
+                                <h4 class="panel-title" data-toggle="collapse" data-target="#collapseFive"
+                                    aria-expanded="false" aria-controls="collapseFive">Where does it come from?</h4>
+                                <div class="panel-content collapse" id="collapseFive">Aliquam erat volutpat. Interdum et
+                                    malesuada fames ac ante ipsum primis in faucibus. Proin tortor enim, lacinia nec
+                                    malesuada eget, laoreet eget quam. Suspendisse quis mauris quis tellus rutrum
+                                    imperdiet nec id ipsum. Suspendisse non nisi in metus viverra convallis. Nam dictum
+                                    erat sed libero eleifend, a venenatis ipsum elementum. Nulla placerat metus nec nisl
+                                    malesuada, et mattis mauris faucibus. Cras blandit efficitur condimentum. Nam
+                                    euismod sapien et iaculis tempus. Duis vitae ullamcorper libero.</div>
+                            </div>
+                            <div class="faq-body">
+                                <h4 class="panel-title" data-toggle="collapse" data-target="#collapseSix"
+                                    aria-expanded="false" aria-controls="collapseSix">Why do we use it?</h4>
+                                <div class="panel-content collapse" id="collapseSix">It is a long established fact that
+                                    a reader will be distracted by the readable content of a page when looking at its
+                                    layout.It is a long established fact that a reader will be distracted by the
+                                    readable content of a page when looking at its layout.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <!--End Body Content-->
+        
+        <!--Footer-->
+        <footer id="footer">
+            <div class="newsletter-section">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-12 col-sm-12 col-md-12 col-lg-7 w-100 d-flex justify-content-start align-items-center">
+                            <div class="display-table">
+                                <div class="display-table-cell footer-newsletter">
+                                    <div class="section-header text-center">
+                                        <label class="h2"><span>sign up for </span>newsletter</label>
+                                    </div>
+                                    <form action="{% url 'subscribe_newsletter' %}" method="post" id="newsletter-form-footer">
+                                        {% csrf_token %}
+                                        <div class="input-group">
+                                            <input type="email" class="input-group__field newsletter__input" name="EMAIL"
+                                                value="" placeholder="Email address" required="">
+                                            <span class="input-group__btn">
+                                                <button type="submit" class="btn newsletter__submit" name="commit"
+                                                    id="SubscribeFooter"><span
+                                                        class="newsletter__submit-text--large">Subscribe</span></button>
+                                            </span>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-sm-12 col-md-12 col-lg-5 d-flex justify-content-end align-items-center">
+                            <div class="footer-social">
+                                <ul class="list--inline site-footer__social-icons social-icons">
+                                    {% if site_settings.facebook_url %}
+                                    <li><a class="social-icons__link" href="{{ site_settings.facebook_url }}" target="_blank"
+                                            title="Facebook"><i class="icon icon-facebook"></i></a></li>
+                                    {% endif %}
+                                    {% if site_settings.twitter_url %}
+                                    <li><a class="social-icons__link" href="{{ site_settings.twitter_url }}" target="_blank"
+                                            title="Twitter"><i class="icon icon-twitter"></i></a></li>
+                                    {% endif %}
+                                    {% if site_settings.instagram_url %}
+                                    <li><a class="social-icons__link" href="{{ site_settings.instagram_url }}" target="_blank"
+                                            title="Instagram"><i class="icon icon-instagram"></i></a>
+                                    </li>
+                                    {% endif %}
+                                    {% if site_settings.pinterest_url %}
+                                    <li><a class="social-icons__link" href="{{ site_settings.pinterest_url }}" target="_blank"
+                                            title="Pinterest"><i class="icon icon-pinterest"></i></a>
+                                    </li>
+                                    {% endif %}
+                                    {% if site_settings.youtube_url %}
+                                    <li><a class="social-icons__link" href="{{ site_settings.youtube_url }}" target="_blank"
+                                            title="YouTube"><i class="icon icon-youtube"></i></a></li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="site-footer">
+                <div class="container">
+                    <div class="footer-top">
+                        <div class="row">
+                            <div class="col-12 col-sm-12 col-md-3 col-lg-3 footer-links">
+                                <h4 class="h4">Quick Shop</h4>
+                                <ul>
+                                    {% for category in categories|slice:":5" %}
+                                    <li><a href="{% url 'shop' %}?category={{ category.slug }}">{{ category.name }}</a>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            <div class="col-12 col-sm-12 col-md-3 col-lg-3 footer-links">
+                                <h4 class="h4">Informations</h4>
+                                <ul>
+                                    <li><a href="{% url 'about_us' %}">About us</a></li>
+                                    <li><a href="#">Careers</a></li>
+                                    <li><a href="#">Privacy policy</a></li>
+                                    <li><a href="#">Terms &amp; condition</a></li>
+                                    <li><a href="#">My Account</a></li>
+                                </ul>
+                            </div>
+                            <div class="col-12 col-sm-12 col-md-3 col-lg-3 footer-links">
+                                <h4 class="h4">Customer Services</h4>
+                                <ul>
+                                    <li><a href="#">Request Personal Data</a></li>
+                                    <li><a href="{% url 'faqs' %}">FAQ's</a></li>
+                                    <li><a href="{% url 'contact_us' %}">Contact Us</a></li>
+                                    <li><a href="#">Orders and Returns</a></li>
+                                    <li><a href="#">Support Center</a></li>
+                                </ul>
+                            </div>
+                            <div class="col-12 col-sm-12 col-md-3 col-lg-3 contact-box">
+                                <h4 class="h4">Contact Us</h4>
+                                <ul class="addressFooter">
+                                    {% if site_settings.address %}
+                                    <li><i class="icon anm anm-map-marker-al"></i>
+                                        <p>{{ site_settings.address }}</p>
+                                    </li>
+                                    {% endif %}
+                                    {% if site_settings.phone %}
+                                    <li class="phone"><i class="icon anm anm-phone-s"></i>
+                                        <p>{{ site_settings.phone }}</p>
+                                    </li>
+                                    {% endif %}
+                                    {% if site_settings.email %}
+                                    <li class="email"><i class="icon anm anm-envelope-l"></i>
+                                        <p>{{ site_settings.email }}</p>
+                                    </li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="footer-bottom">
+                        <div class="row">
+                            <div
+                                class="col-12 col-sm-12 col-md-6 col-lg-6 order-1 order-md-0 order-lg-0 order-sm-1 copyright text-sm-center text-md-left text-lg-left">
+                                <span>&copy; 2026 Verity Bazar. All rights reserved.</span>
+                            </div>
+                            <div class="col-12 col-sm-12 col-md-6 col-lg-6 payment-icons text-right text-md-center">
+                                <ul class="payment-icons list--inline">
+                                    <li><i class="icon fa fa-cc-visa" aria-hidden="true"></i></li>
+                                    <li><i class="icon fa fa-cc-mastercard" aria-hidden="true"></i></li>
+                                    <li><i class="icon fa fa-cc-discover" aria-hidden="true"></i></li>
+                                    <li><i class="icon fa fa-cc-paypal" aria-hidden="true"></i></li>
+                                    <li><i class="icon fa fa-cc-amex" aria-hidden="true"></i></li>
+                                    <li><i class="icon fa fa-credit-card" aria-hidden="true"></i></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+        <!--End Footer-->
+
+        <!--Scoll Top-->
+        <span id="site-scroll"><i class="icon anm anm-angle-up-r"></i></span>
+        <!--End Scoll Top-->
+
+        <!-- Including Jquery -->
+        <script src="{% static 'js/vendor/jquery-3.3.1.min.js' %}"></script>
+        <script src="{% static 'js/vendor/jquery.cookie.js' %}"></script>
+        <script src="{% static 'js/vendor/modernizr-3.6.0.min.js' %}"></script>
+        <script src="{% static 'js/vendor/wow.min.js' %}"></script>
+        <!-- Including Javascript -->
+        <script src="{% static 'js/bootstrap.min.js' %}"></script>
+        <script src="{% static 'js/plugins.js' %}"></script>
+        <script src="{% static 'js/popper.min.js' %}"></script>
+        <script src="{% static 'js/lazysizes.js' %}"></script>
+        <script src="{% static 'js/main.js' %}"></script>
+        <script>
+            // Global flag to prevent double submissions
+            window.addToCartInProgress = false;
+
+            // Show notification function
+            function showNotification(message, type) {
+                $('#cart-notification').remove();
+                var bgColor = type === 'success' ? '#3CB371' : '#dc3545';
+                var notification = $('<div id="cart-notification" class="cart-notification-msg" style="background: ' + bgColor + '; color: white; padding: 15px; margin-bottom: 10px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">' + message + '</div>');
+                $('body').append(notification);
+                setTimeout(function() {
+                    notification.fadeOut(300, function() { $(this).remove(); });
+                }, 3000);
+            }
+
+            // Update navbar cart without page refresh
+            function updateNavbarCart() {
+                $.ajax({
+                    url: '{% url "get_cart_data" %}',
+                    type: 'GET',
+                    success: function(response) {
+                        if (response.cart_items_html) {
+                            $('#header-cart').html(response.cart_items_html);
+                        }
+                        if (response.cart_count !== undefined) {
+                            $('#CartCount').text(response.cart_count);
+                        }
+                    }
+                });
+            }
+
+            // Update cart item quantity
+            function updateCartItem(element, itemId, action) {
+                var qtyField = $(element).closest('.qtyField');
+                var qtyInput = qtyField.find('.qty');
+                var currentVal = parseInt(qtyInput.val());
+                
+                if (action === 'minus' && currentVal > 1) {
+                    currentVal--;
+                } else if (action === 'plus') {
+                    currentVal++;
+                } else {
+                    return;
+                }
+                updateCartItemQty(itemId, currentVal);
+            }
+
+            function updateCartItemQty(itemId, quantity) {
+                if (quantity < 1) quantity = 1;
+                $.ajax({
+                    url: '{% url "update_cart" %}',
+                    type: 'POST',
+                    data: { 'item_id': itemId, 'quantity': quantity, 'csrfmiddlewaretoken': '{{ csrf_token }}' },
+                    success: function(response) {
+                        if (response.success) {
+                            $('#CartCount').text(response.cart_count);
+                            $('#cart-qty-' + itemId).val(quantity);
+                            $('#header-cart .total .product-price .money').text('₨' + response.cart_subtotal);
+                            $('#mini-cart-subtotal').text('₨' + response.cart_subtotal);
+                        }
+                    }
+                });
+            }
+
+            function removeCartItem(element, itemId) {
+                $.ajax({
+                    url: '{% url "remove_from_cart" %}',
+                    type: 'POST',
+                    data: { 'item_id': itemId, 'csrfmiddlewaretoken': '{{ csrf_token }}' },
+                    success: function(response) {
+                        if (response.success) {
+                            $('#CartCount').text(response.cart_count);
+                            $(element).closest('.item').remove();
+                            $('#header-cart .total .product-price .money').text('₨' + response.cart_subtotal);
+                            $('#mini-cart-subtotal').text('₨' + response.cart_subtotal);
+                            if ($('#header-cart .mini-products-list .item').length === 0) {
+                                $('#header-cart').html('<div class="text-center p-3"><p>Your cart is empty</p></div>');
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Add to Cart function
+            function addToCart(form) {
+                if (window.addToCartInProgress) {
+                    return false;
+                }
+                
+                var formData = $(form).serialize();
+                var submitBtn = $(form).find('button[type="submit"]');
+                var originalText = submitBtn.html();
+
+                window.addToCartInProgress = true;
+                submitBtn.html('<i class="fa fa-spinner fa-spin"></i> Adding...').prop('disabled', true);
+
+                $.ajax({
+                    url: '{% url "add_to_cart" %}',
+                    type: 'POST',
+                    data: formData,
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            $('#CartCount').text(response.cart_count);
+                            updateNavbarCart();
+                            showNotification('Product added to cart successfully!', 'success');
+                        } else {
+                            showNotification(response.message || 'Error adding to cart', 'error');
+                        }
+                    },
+                    error: function(xhr) {
+                        showNotification('Error adding to cart', 'error');
+                    },
+                    complete: function() {
+                        setTimeout(function() {
+                            submitBtn.html(originalText).prop('disabled', false);
+                            window.addToCartInProgress = false;
+                        }, 500);
+                    }
+                });
+                return false;
+            }
+
+            // Newsletter subscription
+            $('#newsletterForm').on('submit', function(e) {
+                e.preventDefault();
+                var $form = $(this);
+                var $btn = $form.find('button[type="submit"]');
+                var originalText = $btn.html();
+                
+                if (!$form.find('input[type="email"]').val()) {
+                    showNotification('Please enter your email address', 'error');
+                    return;
+                }
+                
+                $btn.html('<i class="fa fa-spinner fa-spin"></i> Subscribing...').prop('disabled', true);
+                
+                $.ajax({
+                    url: '{% url "subscribe_newsletter" %}',
+                    type: 'POST',
+                    data: $form.serialize(),
+                    success: function(response) {
+                        showNotification(response.message || 'Successfully subscribed!', 'success');
+                        $form[0].reset();
+                    },
+                    error: function() {
+                        showNotification('Error subscribing. Please try again.', 'error');
+                    },
+                    complete: function() {
+                        $btn.html(originalText).prop('disabled', false);
+                    }
+                });
+            });
+
+            // Bind add to cart forms
+            $(document).ready(function() {
+                $(document).on('submit', 'form.variants.add, .add-to-cart-form', function(e) {
+                    e.preventDefault();
+                    addToCart(this);
+                });
+                
+                // Initialize Bootstrap collapse for FAQs
+                $('.panel-title').on('click', function() {
+                    var target = $(this).attr('data-target');
+                    if ($(target).hasClass('show')) {
+                        $(target).collapse('hide');
+                    } else {
+                        $(target).collapse('show');
+                    }
+                });
+            });
+        </script>
+
+        <script>
+            (function() {
+                // Newsletter subscription for footer form
+                const newsletterForm = document.getElementById('newsletter-form-footer');
+                if (newsletterForm) {
+                    newsletterForm.addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        const form = e.target;
+                        const submitBtn = form.querySelector('button[type="submit"]');
+                        const originalText = submitBtn.innerHTML;
+                        const email = form.querySelector('input[name="EMAIL"]').value;
+                        
+                        if (!email) {
+                            showNotificationFooter('Please enter your email address', 'error');
+                            return;
+                        }
+                        
+                        submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Subscribing...';
+                        submitBtn.disabled = true;
+                        
+                        fetch(form.action, {
+                            method: 'POST',
+                            body: new FormData(form),
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            showNotificationFooter(data.message || 'Successfully subscribed!', 'success');
+                            form.reset();
+                        })
+                        .catch(() => {
+                            showNotificationFooter('Error subscribing. Please try again.', 'error');
+                        })
+                        .finally(() => {
+                            submitBtn.innerHTML = originalText;
+                            submitBtn.disabled = false;
+                        });
+                    });
+                }
+                
+                function showNotificationFooter(message, type) {
+                    const notificationDiv = document.createElement('div');
+                    notificationDiv.className = 'cart-notification-msg';
+                    notificationDiv.style.cssText = `
+                        position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 300px;
+                        background: ${type === 'success' ? '#3CB371' : '#dc3545'};
+                        color: white; padding: 15px; border-radius: 5px;
+                        box-shadow: 0 2px 5px rgba(0,0,0,0.2); animation: fadeIn 0.3s;
+                    `;
+                    notificationDiv.textContent = message;
+                    document.body.appendChild(notificationDiv);
+                    setTimeout(() => {
+                        notificationDiv.style.opacity = '0';
+                        setTimeout(() => notificationDiv.remove(), 300);
+                    }, 3000);
+                }
+                
+                // Add animation style if not present
+                if (!document.querySelector('#footer-notification-style')) {
+                    const style = document.createElement('style');
+                    style.id = 'footer-notification-style';
+                    style.textContent = `
+                        @keyframes fadeIn {
+                            from { opacity: 0; transform: translateX(20px); }
+                            to { opacity: 1; transform: translateX(0); }
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+            })();
+        </script>
+
+    </div>
+</body>
+
+<!-- belle/faqs.html   11 Nov 2019 12:44:40 GMT -->
+
+</html>

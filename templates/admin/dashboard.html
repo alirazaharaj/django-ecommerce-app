@@ -1,0 +1,621 @@
+<!-- templates/admin/dashboard.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Belle Admin</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f3f4f6;
+            color: #1f2937;
+        }
+        
+        .admin-header {
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .logo h1 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #3b82f6;
+        }
+        
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .user-menu a {
+            color: #6b7280;
+            text-decoration: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+        
+        .user-menu a:hover {
+            background: #f3f4f6;
+        }
+        
+        .dashboard-container {
+            padding: 24px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .stat-card h3 {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 5px;
+        }
+        
+        .stat-description {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+        
+        .chart-container {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e5e7eb;
+        }
+        
+        .chart-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #1f2937;
+        }
+        
+        .top-items-list {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e5e7eb;
+        }
+        
+        .top-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        
+        .top-item:last-child {
+            border-bottom: none;
+        }
+        
+        .item-rank {
+            width: 40px;
+            height: 40px;
+            background: #f3f4f6;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #6b7280;
+            margin-right: 15px;
+        }
+        
+        .item-rank.rank-1 { background: #fef3c7; color: #d97706; }
+        .item-rank.rank-2 { background: #e5e7eb; color: #6b7280; }
+        .item-rank.rank-3 { background: #fed7aa; color: #ea580c; }
+        
+        .item-image {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            object-fit: cover;
+            margin-right: 15px;
+            background: #f9fafb;
+        }
+        
+        .item-info {
+            flex: 1;
+        }
+        
+        .item-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #1f2937;
+        }
+        
+        .item-stats {
+            font-size: 12px;
+            color: #6b7280;
+        }
+        
+        .item-value {
+            text-align: right;
+        }
+        
+        .item-quantity {
+            font-weight: bold;
+            color: #10b981;
+            font-size: 18px;
+        }
+        
+        .item-revenue {
+            font-size: 14px;
+            color: #6b7280;
+        }
+        
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 20px;
+            width: 80%;
+            max-width: 800px;
+            border-radius: 12px;
+            max-height: 80%;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close:hover {
+            color: black;
+        }
+        
+        .product-list-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #f3f4f6;
+            cursor: pointer;
+        }
+        
+        .product-list-item:hover {
+            background: #f9fafb;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .badge-warning {
+            background: #fef3c7;
+            color: #d97706;
+        }
+        
+        .badge-danger {
+            background: #fee2e2;
+            color: #ef4444;
+        }
+        
+        .badge-success {
+            background: #d1fae5;
+            color: #10b981;
+        }
+        
+        .metric-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .metric-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #3b82f6;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #3b82f6;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+        
+        .btn:hover {
+            background: #2563eb;
+        }
+        
+        @media (max-width: 768px) {
+            .stats-row {
+                grid-template-columns: 1fr;
+            }
+            .dashboard-container {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-header">
+        <div class="logo">
+            <h1>🏪 Belle E-commerce Admin</h1>
+        </div>
+        <div class="user-menu">
+            <a href="/admin/">← Back to Admin</a>
+            <a href="/">View Site</a>
+            <a href="/admin/logout/">Logout</a>
+        </div>
+    </div>
+    
+    <div class="dashboard-container">
+        <h1 style="margin-bottom: 30px; font-size: 24px; font-weight: 600;">📊 E-commerce Dashboard</h1>
+        
+        <!-- Main Stats Cards -->
+        <div class="stats-row">
+            <div class="stat-card" onclick="showProductsList('all')">
+                <h3>📦 Total Active Catalog Items</h3>
+                <div class="stat-value">{{ total_active_items }}</div>
+                <div class="stat-description">
+                    {{ total_products }} Products | {{ total_categories }} Categories | {{ total_brands }} Brands
+                </div>
+            </div>
+ 
+            <div class="stat-card" onclick="window.location.href='/admin/remaining-stock/'">
+                <h3>📦 Remaining Stock</h3>
+                <div class="stat-value">{{ total_items_in_stock }}</div>
+                <div class="stat-description">Click to view detailed stock</div>
+            </div>
+            
+            <div class="stat-card" onclick="showProductsList('low_stock')">
+                <h3>⚠️ Low Stock Warnings</h3>
+                <div class="stat-value" style="color: #d97706;">{{ low_stock_count }}</div>
+                <div class="stat-description">Products below threshold</div>
+            </div>
+            
+            <div class="stat-card" onclick="showProductsList('out_of_stock')">
+                <h3>❌ Out of Stock</h3>
+                <div class="stat-value" style="color: #ef4444;">{{ out_of_stock_count }}</div>
+                <div class="stat-description">Products with zero quantity</div>
+            </div>
+            
+            <div class="stat-card" onclick="showRevenueChart()">
+                <h3>💰 7-Day Revenue Summary</h3>
+                <div class="stat-value">Rs{{ revenue_last_7_days|floatformat:2 }}</div>
+                <div class="stat-description">Last 7 days total revenue</div>
+            </div>
+        </div>
+        
+        <!-- Additional Metrics Row -->
+        <div class="stats-row">
+            <div class="metric-card">
+                <div class="metric-value">{{ total_orders_30_days }}</div>
+                <div>📋 Orders (Last 30 Days)</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">Rs{{ total_revenue_30_days|floatformat:2 }}</div>
+                <div>💰 Revenue (Last 30 Days)</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">Rs{{ avg_order_value|floatformat:2 }}</div>
+                <div>📊 Average Order Value</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">{{ pending_orders }}</div>
+                <div>⏳ Pending Orders</div>
+                <div class="stat-description" style="font-size: 12px; margin-top: 8px;">
+                    <a href="/admin/main_app/order/?status=pending" style="color: #3b82f6;">View Orders →</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Revenue Chart -->
+        <div class="chart-container">
+            <div class="chart-title">📈 7-Day Revenue Trend</div>
+            <canvas id="revenueChart" style="max-height: 400px;"></canvas>
+        </div>
+        
+        <!-- Top 5 Best Selling Items -->
+        <div class="top-items-list">
+            <div class="chart-title">🏆 Top 5 Best Selling Items (Last 30 Days)</div>
+            {% for item in top_selling_items %}
+            <div class="top-item">
+                <div class="item-rank rank-{{ forloop.counter }}">{{ forloop.counter }}</div>
+                {% if item.image_url %}
+                <img src="{{ item.image_url }}" alt="{{ item.product_name }}" class="item-image">
+                {% else %}
+                <div class="item-image" style="background: #f3f4f6; display: flex; align-items: center; justify-content: center;">
+                    📦
+                </div>
+                {% endif %}
+                <div class="item-info">
+                    <div class="item-name">{{ item.product_name }}</div>
+                    <div class="item-stats">Product ID: {{ item.product_id }}</div>
+                </div>
+                <div class="item-value">
+                    <div class="item-quantity">{{ item.total_quantity }} sold</div>
+                    <div class="item-revenue">Rs{{ item.total_revenue|floatformat:2 }}</div>
+                </div>
+            </div>
+            {% empty %}
+            <div style="text-align: center; padding: 40px; color: #9ca3af;">
+                No sales data available for the last 30 days
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Quick Links -->
+        <div class="stats-row" style="margin-top: 20px;">
+            <div class="stat-card" onclick="window.location.href='/admin/main_app/product/'">
+                <h3>📦 Manage Products</h3>
+                <div class="stat-value">→</div>
+                <div class="stat-description">Add, edit, or remove products</div>
+            </div>
+            <div class="stat-card" onclick="window.location.href='/admin/main_app/order/'">
+                <h3>📋 Manage Orders</h3>
+                <div class="stat-value">→</div>
+                <div class="stat-description">View and process orders</div>
+            </div>
+            <div class="stat-card" onclick="window.location.href='/admin/main_app/category/'">
+                <h3>🏷️ Manage Categories</h3>
+                <div class="stat-value">→</div>
+                <div class="stat-description">Organize product categories</div>
+            </div>
+            <div class="stat-card" onclick="window.location.href='/admin/auth/user/'">
+                <h3>👥 Manage Customers</h3>
+                <div class="stat-value">→</div>
+                <div class="stat-description">View and manage users</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal for Products List -->
+    <div id="productsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Products List</h2>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <div id="productsList">
+                <div style="text-align: center; padding: 20px;">Loading...</div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let revenueChart = null;
+        
+        // Initialize chart
+        const ctx = document.getElementById('revenueChart').getContext('2d');
+        revenueChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: {{ chart_dates|safe }},
+                datasets: [{
+                    label: 'Revenue (Rs)',
+                    data: {{ chart_revenues|safe }},
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    tension: 0.4,
+                    fill: true,
+                    pointBackgroundColor: '#3b82f6',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return 'Rs' + context.parsed.y.toFixed(2);
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return 'Rs' + value.toFixed(2);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Show products list modal
+        function showProductsList(filterType) {
+            const modal = document.getElementById('productsModal');
+            const modalTitle = document.getElementById('modalTitle');
+            
+            let title = '';
+            if (filterType === 'low_stock') {
+                title = '⚠️ Low Stock Products';
+            } else if (filterType === 'out_of_stock') {
+                title = '❌ Out of Stock Products';
+            } else {
+                title = '📦 All Active Products';
+            }
+            
+            modalTitle.textContent = title;
+            modal.style.display = 'block';
+            
+            // Fetch products via AJAX
+            $.ajax({
+                url: '/admin/dashboard/ajax/',
+                method: 'GET',
+                data: { type: 'products_list', filter: filterType },
+                success: function(response) {
+                    displayProducts(response.products, filterType);
+                },
+                error: function() {
+                    document.getElementById('productsList').innerHTML = 
+                        '<div style="text-align: center; padding: 20px; color: #ef4444;">Error loading products</div>';
+                }
+            });
+        }
+        
+        function displayProducts(products, filterType) {
+            const container = document.getElementById('productsList');
+            
+            if (!products || products.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 40px; color: #9ca3af;">No products found</div>';
+                return;
+            }
+            
+            let html = '';
+            for (const product of products) {
+                let statusBadge = '';
+                if (filterType === 'low_stock') {
+                    statusBadge = `<span class="badge badge-warning">Low Stock (${product.quantity}/${product.low_stock_threshold})</span>`;
+                } else if (filterType === 'out_of_stock') {
+                    statusBadge = '<span class="badge badge-danger">Out of Stock</span>';
+                } else {
+                    statusBadge = product.quantity > 0 ? 
+                        '<span class="badge badge-success">In Stock</span>' : 
+                        '<span class="badge badge-danger">Out of Stock</span>';
+                }
+                
+                html += `
+                    <div class="product-list-item" onclick="window.location.href='/admin/main_app/product/${product.id}/change/'">
+                        ${product.image_url ? 
+                            `<img src="${product.image_url}" alt="${product.name}" style="width: 50px; height: 50px; border-radius: 8px; object-fit: cover; margin-right: 15px;">` :
+                            `<div style="width: 50px; height: 50px; background: #f3f4f6; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-right: 15px;">📦</div>`
+                        }
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; margin-bottom: 5px;">${escapeHtml(product.name)}</div>
+                            <div style="font-size: 12px; color: #6b7280;">SKU: ${escapeHtml(product.sku)}</div>
+                        </div>
+                        <div>
+                            ${statusBadge}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            container.innerHTML = html;
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function showRevenueChart() {
+            // Scroll to chart
+            document.querySelector('.chart-container').scrollIntoView({ behavior: 'smooth' });
+            
+            // Refresh chart data
+            $.ajax({
+                url: '/admin/dashboard/ajax/',
+                method: 'GET',
+                data: { type: 'revenue' },
+                success: function(response) {
+                    if (revenueChart) {
+                        revenueChart.data.labels = response.dates;
+                        revenueChart.data.datasets[0].data = response.revenues;
+                        revenueChart.update();
+                    }
+                }
+            });
+        }
+        
+        function closeModal() {
+            document.getElementById('productsModal').style.display = 'none';
+        }
+        
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('productsModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+{% load static %}
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    
+    <!-- Title Tags with SEO Structure -->
+    <title>Secure Checkout - {{ site_settings.site_name|default:"Belle" }} | Complete Your Order</title>
+    <meta name="title" content="Checkout - {{ site_settings.site_name|default:'Belle' }}">
+    <meta name="description" content="Secure checkout at {{ site_settings.site_name|default:'Belle' }}. Fast & safe payment options. Complete your order with confidence. ✓SSL Secure ✓Multiple Payments">
+    
+    <!-- Open Graph / Social Media Meta Tags -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta property="og:title" content="Secure Checkout - {{ site_settings.site_name|default:'Belle' }}">
+    <meta property="og:description" content="Complete your purchase securely. Fast shipping & easy returns. Shop with confidence!">
+    <meta property="og:image" content="{% static 'images/logo.svg' %}">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Checkout - {{ site_settings.site_name|default:'Belle' }}">
+    <meta name="twitter:description" content="Secure payment gateway. Complete your order now!">
+    <meta name="twitter:image" content="{% static 'images/logo.svg' %}">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="{{ request.build_absolute_uri }}">
+    
+    <!-- Keywords -->
+    <meta name="keywords" content="checkout, secure payment, buy now, complete order, shipping, payment">
+    
+    <!-- Robots - No index for checkout page (security best practice) -->
+    <meta name="robots" content="noindex, follow">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="{% if site_settings.favicon %}{{ site_settings.favicon.url }}{% else %}{% static 'images/favicon.png' %}{% endif %}" />
+    
+    <!-- Plugins CSS -->
+    <link rel="stylesheet" href="{% static 'css/plugins.css' %}">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <!-- Main Style CSS -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/responsive.css' %}"> 
+    <style>
+        /* Logo max-width control */
+        .logo img {
+            max-width: 30%;
+        }
+
+        @media (max-width: 768px) {
+            .logo img {
+                max-width: 25%;
+            }
+        }
+        /* Notification Popup Styles */
+        #cart-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 300px;
+            color: white;
+            background: #2c3e2f;
+            border-radius: 8px;
+            padding: 14px 18px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+            font-weight: 500;
+        }
+        .cart-notification-msg {
+            animation: fadeIn 0.3s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        /* Checkout specific styles */
+        .order-table .cart-item-remove {
+            color: #c0392b;
+            font-size: 16px;
+            margin-left: 8px;
+            transition: color 0.2s;
+        }
+        .order-table .cart-item-remove:hover {
+            color: #e74c3c;
+        }
+        .empty-cart-message {
+            text-align: center;
+            padding: 60px 20px;
+            background: #f9f9f9;
+            border-radius: 12px;
+        } 
+        .btn-primary:hover {
+            background: #2c3e50;
+            border-color: #2c3e50;
+        }
+        .payment-card-active {
+            border-left: 3px solid #27ae60;
+            background: #fef9e6;
+        }
+        .spinner-border-sm {
+            width: 1.2rem;
+            height: 1.2rem;
+            margin-right: 6px;
+        }
+        /* Two forms independence */
+        form#checkoutForm, form#newsletter-form-footer {
+            isolation: isolate;
+        }
+        .coupon-btn, .customer-info .btn {
+            transition: all 0.2s;
+        }
+    </style>
+</head>
+<body class="page-template belle">
+<div class="pageWrapper">
+    <!-- Search Form Drawer -->
+    <div class="search">
+        <div class="search__form">
+            <form class="search-bar__form" action="{% url 'shop' %}" method="GET">
+                <button class="go-btn search__button" type="submit"><i class="icon anm anm-search-l"></i></button>
+                <input class="search__input" type="search" name="q" value="" placeholder="Search entire store..." aria-label="Search" autocomplete="off" id="search-input">
+            </form>
+            <button type="button" class="search-trigger close-btn"><i class="icon anm anm-times-l"></i></button>
+        </div>
+    </div>
+    
+    <!-- Top Header (same as original) -->
+    <div class="top-header">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-10 col-sm-8 col-md-5 col-lg-4">
+                    <div class="currency-picker">
+                        <span class="selected-currency">PKR</span>
+                    </div>
+                    <div class="language-dropdown"><span class="language-dd">English</span></div>
+                    <p class="phone-no"><i class="anm anm-phone-s"></i>{{ site_settings.phone|default:"+440 0(111)044 833" }}</p>
+                </div>
+                <div class="col-sm-4 col-md-4 col-lg-4 d-none d-lg-none d-md-block d-lg-block"><div class="text-center"><p class="top-header_middle-text">Countrywide Express Shipping</p></div></div>
+                <div class="col-2 col-sm-4 col-md-3 col-lg-4 text-right">
+                    <span class="user-menu d-block d-lg-none"><i class="anm anm-user-al"></i></span>
+                    <ul class="customer-links list-inline">
+                        {% if user.is_authenticated %}
+                        <li><a href="{% url 'my_account' %}"><i class="anm anm-user-al"></i> {{ user.username }}</a></li>
+                        <li><a href="{% url 'track_order' %}"><i class="anm anm-truck-l"></i> Track Order</a></li>
+                        <li><a href="{% url 'logout' %}"><i class="anm anm-sign-out-l"></i> Logout</a></li>
+                        {% else %}
+                        <li><a href="{% url 'login' %}"><i class="anm anm-sign-in-l"></i> Login</a></li>
+                        <li><a href="{% url 'register' %}"><i class="anm anm-user-plus-l"></i> Register</a></li>
+                        {% endif %}
+                        <li><a href="{% url 'wishlist' %}"><i class="anm anm-heart-l"></i> Wishlist</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Header (minicart / nav) -->
+    <div class="header-wrap animated d-flex">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="logo col-md-2 col-lg-2 d-none d-lg-block">
+                        <a href="{% url 'home' %}" style="display: flex; align-items: center; text-decoration: none;">
+                            <img src="{% if site_settings.logo %}{{ site_settings.logo.url }}{% else %}{% static 'images/logo.svg' %}{% endif %}"
+                                alt="{{ site_settings.site_name }}" title="{{ site_settings.site_name }}" 
+                                style="max-width: 50px; margin-right: 10px;" />
+                            <span style="font-size: 18px; font-weight: 700; color: #333; letter-spacing: 1px; white-space: nowrap;">
+                                VERITY BAZAR
+                            </span>
+                        </a>
+                    </div>
+                <div class="col-2 col-sm-3 col-md-3 col-lg-8">
+                    <div class="d-block d-lg-none"><button type="button" class="btn--link site-header__menu js-mobile-nav-toggle mobile-nav--open"><i class="icon anm anm-times-l"></i><i class="anm anm-bars-r"></i></button></div> 
+                    <nav class="grid__item" id="AccessibleNav">
+                        <ul id="siteNav" class="site-nav medium center hidearrow">
+                            <li class="lvl1"><a href="{% url 'home' %}">Home</a></li>
+                            <li class="lvl1 parent megamenu"><a href="{% url 'shop' %}">Shop <i class="anm anm-angle-down-l"></i></a>
+                                <div class="megamenu style1"><ul class="grid mmWrapper"><li class="grid__item large-up--one-whole"><ul class="grid"><li class="grid__item lvl-1 col-md-4 col-lg-4"><a href="#" class="site-nav lvl-1">Shop by Category</a><ul class="subLinks">{% for category in categories|slice:":8" %}<li class="lvl-2"><a href="{% url 'shop' %}?category={{ category.slug }}">{{ category.name }}</a></li>{% endfor %}<li class="lvl-2"><a href="{% url 'shop' %}">View All →</a></li></ul></li><li class="grid__item lvl-1 col-md-4 col-lg-4"><a href="#" class="site-nav lvl-1">Shop by Price</a><ul class="subLinks"><li class="lvl-2"><a href="{% url 'shop' %}?min_price=0&max_price=50">Under ₨50</a></li><li class="lvl-2"><a href="{% url 'shop' %}?min_price=50&max_price=100">₨50 - ₨100</a></li><li class="lvl-2"><a href="{% url 'shop' %}?min_price=100&max_price=200">₨100 - ₨200</a></li><li class="lvl-2"><a href="{% url 'shop' %}?min_price=200">₨200 & Above</a></li></ul></li><li class="grid__item lvl-1 col-md-4 col-lg-4"><a href="#" class="site-nav lvl-1">Shop by Label</a><ul class="subLinks"><li class="lvl-2"><a href="{% url 'shop' %}?on_sale=true">On Sale <span class="lbl nm_label1">Hot</span></a></li><li class="lvl-2"><a href="{% url 'shop' %}?featured=true">Featured</a></li><li class="lvl-2"><a href="{% url 'shop' %}?best_selling=true">Best Selling</a></li><li class="lvl-2"><a href="{% url 'shop' %}?new_arrival=true">New Arrivals <span class="lbl nm_label2">New</span></a></li></ul></li></ul></li></ul></div>
+                            </li>
+                            <li class="lvl1"><a href="{% url 'track_order' %}">Track Order</a></li>
+                            <li class="lvl1"><a href="{% url 'compare' %}">Compare Product</a></li>
+                            <li class="lvl1 parent dropdown"><a href="#">Pages <i class="anm anm-angle-down-l"></i></a><ul class="dropdown"><li><a href="{% url 'cart' %}">Cart Page</a></li><li><a href="{% url 'checkout' %}">Checkout</a></li><li><a href="{% url 'about_us' %}">About Us <span class="lbl nm_label1">New</span></a></li><li><a href="{% url 'contact_us' %}">Contact Us</a></li><li><a href="{% url 'faqs' %}">FAQs</a></li></ul></li>
+                        </ul>
+                    </nav>
+                </div>
+                <!-- Mobile Logo -->
+                    <div class="col-6 col-sm-6 col-md-6 col-lg-2 d-block d-lg-none mobile-logo">
+                        <div class="logo">
+                            <a href="{% url 'home' %}" style="display: flex; align-items: center; text-decoration: none;">
+                                <img src="{% if site_settings.logo %}{{ site_settings.logo.url }}{% else %}{% static 'images/logo.svg' %}{% endif %}"
+                                    alt="{{ site_settings.site_name }}" 
+                                    style="max-width: 40px; margin-right: 8px;" />
+                                <span style="font-size: 16px; font-weight: 700; color: #333; letter-spacing: 1px; white-space: nowrap;">
+                                    VERITY BAZAR
+                                </span>
+                            </a>
+                        </div>
+                    </div>
+                <div class="col-4 col-sm-3 col-md-3 col-lg-2">
+                    <div class="site-cart"><a href="{% url 'cart' %}" class="site-header__cart" title="Cart"><i class="icon anm anm-bag-l"></i><span id="CartCount" class="site-header__cart-count">{{ cart_count|default:0 }}</span></a>
+                        <!-- Minicart Popup -->
+                            <div id="header-cart" class="block block-cart">
+                                {% if cart and cart.items.exists %}
+                                <ul class="mini-products-list">
+                                    {% for item in cart.items.all|slice:":5" %}
+                                    <li class="item" id="cart-item-{{ item.id }}">
+                                        <a class="product-image" href="{{ item.product.get_absolute_url }}">
+                                            <img src="{% if item.product.primary_image %}{{ item.product.primary_image.url }}{% else %}{% static 'images/product-images/default.jpg' %}{% endif %}"
+                                                alt="{{ item.product.name }}" />
+                                        </a>
+                                        <div class="product-details">
+                                            <a href="#" class="remove"
+                                                onclick="removeCartItem(this, {{ item.id }}); return false;">
+                                                <i class="anm anm-times-l" aria-hidden="true"></i>
+                                            </a>
+                                            <a class="pName" href="{{ item.product.get_absolute_url }}">
+                                                {{ item.product.name }}
+                                            </a>
+                                            {% if item.variant %}
+                                            <div class="variant-cart">
+                                                {% if item.variant.size %}
+                                                <span class="cart-size">Size: {{ item.variant.size }}</span>
+                                                {% endif %}
+                                                <br>
+                                                {% if item.variant.color %}
+                                                <span class="cart-color">Color: {{ item.variant.color }}</span>
+                                                {% endif %}
+                                            </div>
+                                            {% endif %}
+                                            <div class="wrapQtyBtn">
+                                                <div class="qtyField">
+                                                    <span class="label">Qty:</span>
+                                                    <a class="qtyBtn minus" href="javascript:void(0);"
+                                                        onclick="updateCartItem(this, {{ item.id }}, 'minus')">
+                                                        <i class="fa anm anm-minus-r" aria-hidden="true"></i>
+                                                    </a>
+                                                    <input type="text" value="{{ item.quantity }}"
+                                                        class="product-form__input qty" id="cart-qty-{{ item.id }}"
+                                                        readonly>
+                                                    <a class="qtyBtn plus" href="javascript:void(0);"
+                                                        onclick="updateCartItem(this, {{ item.id }}, 'plus')">
+                                                        <i class="fa anm anm-plus-r" aria-hidden="true"></i>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                            <div class="priceRow">
+                                                <div class="product-price">
+                                                    <!-- IMPORTANT: Show UNIT PRICE here, not total -->
+                                                    <span class="money">Rs {{ item.unit_price|default:item.price }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                                <div class="total">
+                                    <div class="total-in">
+                                        <span class="label">Cart Subtotal:</span>
+                                        <span class="product-price"><span class="money">Rs {{ cart.subtotal }}</span></span>
+                                    </div>
+                                    <div class="buttonSet text-center">
+                                        <a href="{% url 'cart' %}" class="btn btn-secondary btn--small">View Cart</a>
+                                        <a href="{% url 'checkout' %}" class="btn btn-secondary btn--small">Checkout</a>
+                                    </div>
+                                </div>
+                                {% else %}
+                                <div class="text-center p-3">
+                                    <p>Your cart is empty</p>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <!-- End Minicart Popup -->
+                    </div>
+                    <div class="site-header__search"><button type="button" class="search-trigger"><i class="icon anm anm-search-l"></i></button></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Mobile Menu ... (simplified) -->
+    <div class="mobile-nav-wrapper" role="navigation"><div class="closemobileMenu"><i class="icon anm anm-times-l pull-right"></i> Close Menu</div><ul id="MobileNav" class="mobile-nav"><li class="lvl1"><a href="{% url 'home' %}">Home</a></li><li class="lvl1 parent megamenu"><a href="{% url 'shop' %}">Shop <i class="anm anm-plus-l"></i></a><ul><li><a href="{% url 'shop' %}">All Products</a></li>{% for category in categories %}<li><a href="{% url 'shop' %}?category={{ category.slug }}">{{ category.name }}</a></li>{% endfor %}</ul></li><li class="lvl1"><a href="{% url 'track_order' %}">Track Order</a></li><li class="lvl1"><a href="{% url 'compare' %}">Compare Product</a></li><li class="lvl1 parent megamenu"><a href="#">Pages <i class="anm anm-plus-l"></i></a><ul><li><a href="{% url 'cart' %}">Cart Page</a></li><li><a href="{% url 'checkout' %}">Checkout</a></li><li><a href="{% url 'about_us' %}">About Us</a></li><li><a href="{% url 'contact_us' %}">Contact Us</a></li><li><a href="{% url 'faqs' %}">FAQs</a></li><li><a href="{% url 'wishlist' %}">Wishlist</a></li></ul></li>{% if user.is_authenticated %}<li class="lvl1"><a href="{% url 'my_account' %}"><i class="anm anm-user-al"></i> {{ user.username }}</a></li><li class="lvl1"><a href="{% url 'logout' %}"><i class="anm anm-sign-out-l"></i> Logout</a></li>{% else %}<li class="lvl1"><a href="{% url 'login' %}"><i class="anm anm-sign-in-l"></i> Login</a></li><li class="lvl1"><a href="{% url 'register' %}"><i class="anm anm-user-plus-l"></i> Register</a></li>{% endif %}</ul></div>
+    
+    <!-- Main Content: CHECKOUT section -->
+    <div id="page-content">
+        <div class="page section-header text-center"><div class="page-title"><div class="wrapper"><h1 class="page-width">Checkout</h1></div></div></div>
+        {% if cart and cart.items.exists %}
+        <div class="container">
+            <div class="row">
+                <div class="col-xl-6 col-lg-6 col-md-6 col-sm-12 mb-3">
+                    <div class="customer-box returning-customer"><h3><i class="icon anm anm-user-al"></i> Returning customer? <a href="#customer-login" class="text-white text-decoration-underline" data-toggle="collapse">Click here to login</a></h3>
+                        <div id="customer-login" class="collapse customer-content"><div class="customer-info"><p class="coupon-text">If you have shopped with us before, please enter your details below.</p><form method="post" action="{% url 'login' %}">{% csrf_token %}<div class="row"><div class="form-group col-xl-6 col-lg-6 col-md-6 col-sm-12"><label>Email <span class="required-f">*</span></label><input type="email" name="username" class="form-control" required></div><div class="form-group col-xl-6 col-lg-6 col-md-6 col-sm-12"><label>Password <span class="required-f">*</span></label><input type="password" name="password" class="form-control" required></div></div><div class="row"><div class="col-md-12"><div class="form-check width-100 margin-20px-bottom"><label class="form-check-label"><input type="checkbox" class="form-check-input"> Remember me!</label><a href="#" class="float-right">Forgot password?</a></div><button type="submit" class="btn btn-primary mt-3">Submit</button></div></div></form></div></div></div>
+                </div>
+                <div class="col-xl-6 col-lg-6 col-md-6 col-sm-12 mb-3"><div class="customer-box customer-coupon"><h3><i class="icon anm anm-gift-l"></i> Have a coupon? <a href="#have-coupon" data-toggle="collapse">Click here to enter your code</a></h3><div id="have-coupon" class="collapse coupon-checkout-content"><div class="discount-coupon"><p>Enter your coupon code if you have one.</p><label class="required get">Coupon <span class="required-f">*</span></label><input id="coupon-code" type="text" class="mb-3 form-control"><button class="coupon-btn btn" type="button" onclick="showNotification('Coupon feature coming soon!', 'info')">Apply Coupon</button></div></div></div></div>
+            </div>
+            <div class="row billing-fields">
+                <div class="col-xl-6 col-lg-6 col-md-6 col-sm-12 sm-margin-30px-bottom">
+                    <div class="create-ac-content bg-light-gray padding-20px-all">
+                        <!-- CHECKOUT FORM - independent from newsletter -->
+                        <form method="post" action="{% url 'checkout' %}" id="checkoutForm" novalidate>
+                            {% csrf_token %}
+                            <fieldset><h2 class="login-title mb-3">Billing details</h2>
+                                <div class="row"><div class="form-group col-md-6"><label>First Name <span class="required-f">*</span></label><input name="first_name" value="{% if user.is_authenticated %}{{ user.first_name }}{% endif %}" id="input-firstname" class="form-control" type="text" required></div><div class="form-group col-md-6"><label>Last Name <span class="required-f">*</span></label><input name="last_name" id="input-lastname" class="form-control" required></div></div>
+                                <div class="row"><div class="form-group col-md-6"><label>E-Mail <span class="required-f">*</span></label><input name="email" value="{% if user.is_authenticated %}{{ user.email }}{% endif %}" id="input-email" class="form-control" type="email" required></div><div class="form-group col-md-6"><label>Telephone <span class="required-f">*</span></label><input name="phone" id="input-telephone" class="form-control" type="tel" required></div></div>
+                                <div class="row"><div class="form-group col-md-6"><label>Company</label><input name="company" id="input-company" class="form-control"></div><div class="form-group col-md-6"><label>Address <span class="required-f">*</span></label><input name="address" id="input-address-1" class="form-control" required></div></div>
+                                <div class="row"><div class="form-group col-md-6"><label>Apartment</label><input name="address_2" id="input-address-2" class="form-control"></div><div class="form-group col-md-6"><label>City <span class="required-f">*</span></label><input name="city" id="input-city" class="form-control" required></div></div>
+                                <div class="row"><div class="form-group col-md-6"><label>Post Code <span class="required-f">*</span></label><input name="zip_code" id="input-postcode" class="form-control" required></div><div class="form-group col-md-6"><label>Country <span class="required-f">*</span></label><select name="country" id="input-country" class="form-control" required><option value="United States">United States</option><option value="Canada">Canada</option><option value="United Kingdom">United Kingdom</option><option value="Australia">Australia</option><option value="Germany">Germany</option><option value="France">France</option><option value="Pakistan" selected>Pakistan</option><option value="India">India</option></select></div></div>
+                                <div class="row"><div class="form-group col-md-6"><label>Region / State <span class="required-f">*</span></label><select name="state" id="input-zone" class="form-control" required><option value=""> --- Select --- </option><option value="Punjab">Punjab</option><option value="Sindh">Sindh</option><option value="KPK">KPK</option><option value="Balochistan">Balochistan</option><option value="Kashmir">Kashmir</option></select></div></div>
+                                <div class="row"><div class="form-group col-md-12"><label>Order Notes</label><textarea name="notes" class="form-control" rows="2" placeholder="Special instructions..."></textarea></div></div>
+                            </fieldset>
+                        </form>
+                    </div>
+                </div>
+                <div class="col-xl-6 col-lg-6 col-md-6 col-sm-12">
+                    <div class="your-order-payment">
+                        <div class="your-order"><h2 class="order-title mb-4">Your Order</h2>
+                            <div class="table-responsive-sm order-table"><table class="bg-white table table-bordered table-hover text-center"><thead><tr><th class="text-left">Product</th><th>Price</th><th>Options</th><th>Qty</th><th>Subtotal</th></tr></thead><tbody>{% for item in cart.items.all %}<tr id="checkout-item-{{ item.id }}"><td class="text-left"><a href="{{ item.product.get_absolute_url }}">{{ item.product.name }}</a><a href="#" class="cart-item-remove ml-2" onclick="removeFromCheckout({{ item.id }}); return false;"><i class="anm anm-times-l"></i></a></td><td>₨{{ item.price }}</td><td>{% if item.variant %}{% if item.variant.color %}{{ item.variant.color }}{% endif %}{% if item.variant.size %}/{{ item.variant.size }}{% endif %}{% else %}-{% endif %}</td><td>{{ item.quantity }}</td><td class="item-subtotal" id="checkout-subtotal-{{ item.id }}">₨{{ item.item_total }}</td></tr>{% endfor %}</tbody><tfoot><tr><td colspan="4" class="text-right">Subtotal</td><td id="checkout-subtotal">₨{{ cart.subtotal }}</td></tr><tr><td colspan="4" class="text-right">Shipping</td><td id="checkout-shipping">₨<span id="shipping-cost">0.00</span></td></tr><tr><td colspan="4" class="text-right"><strong>Total</strong></td><td id="checkout-total"><strong>₨{{ cart.subtotal }}</strong></td></tr></tfoot></table></div>
+                        </div>
+                        <hr>
+                        <div class="your-payment"><h2 class="payment-title mb-3">Payment Method</h2><div class="payment-method"><div class="payment-accordion"><div id="accordion" class="payment-section"><div class="card margin-15px-bottom"><div class="card-header"><label class="card-link"><input type="radio" name="payment_method" value="cod" checked> Cash On Delivery</label></div><div><div class="card-body"><p>Pay in cash when your order arrives.</p></div></div></div></div></div>
+                            <div class="order-button-payment mt-4"><button type="submit" form="checkoutForm" class="btn btn-primary btn-block" id="place-order-btn">Place Order</button></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="container"><div class="empty-cart-message"><h3>Your cart is empty!</h3><p>Add products to proceed with checkout.</p><a href="{% url 'shop' %}" class="btn">Continue Shopping</a></div></div>
+        {% endif %}
+    </div>
+    
+    <!-- Footer with independent newsletter form (no interference with checkout) -->
+    <footer id="footer">
+        <div class="newsletter-section">
+            <div class="container">
+                <div class="row">
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-7 w-100 d-flex justify-content-start align-items-center">
+                        <div class="display-table"><div class="display-table-cell footer-newsletter"><div class="section-header text-center"><label class="h2"><span>sign up for </span>newsletter</label></div>
+                            <form action="{% url 'subscribe_newsletter' %}" method="post" id="newsletter-form-footer" class="newsletter-form-standalone">
+                                {% csrf_token %}
+                                <div class="input-group"><input type="email" class="input-group__field newsletter__input" name="EMAIL" value="" placeholder="Email address" required><span class="input-group__btn"><button type="submit" class="btn newsletter__submit" name="commit" id="SubscribeFooter"><span class="newsletter__submit-text--large">Subscribe</span></button></span></div>
+                            </form>
+                        </div></div>
+                    </div>
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-5 d-flex justify-content-end align-items-center"><div class="footer-social"><ul class="list--inline site-footer__social-icons social-icons">{% if site_settings.facebook_url %}<li><a class="social-icons__link" href="{{ site_settings.facebook_url }}" target="_blank"><i class="icon icon-facebook"></i></a></li>{% endif %}{% if site_settings.twitter_url %}<li><a class="social-icons__link" href="{{ site_settings.twitter_url }}" target="_blank"><i class="icon icon-twitter"></i></a></li>{% endif %}{% if site_settings.instagram_url %}<li><a class="social-icons__link" href="{{ site_settings.instagram_url }}" target="_blank"><i class="icon icon-instagram"></i></a></li>{% endif %}{% if site_settings.pinterest_url %}<li><a class="social-icons__link" href="{{ site_settings.pinterest_url }}" target="_blank"><i class="icon icon-pinterest"></i></a></li>{% endif %}{% if site_settings.youtube_url %}<li><a class="social-icons__link" href="{{ site_settings.youtube_url }}" target="_blank"><i class="icon icon-youtube"></i></a></li>{% endif %}</ul></div></div>
+                </div>
+            </div>
+        </div>
+        <div class="site-footer"><div class="container"><div class="footer-top"><div class="row"><div class="col-12 col-sm-12 col-md-3 footer-links"><h4>Quick Shop</h4><ul>{% for category in categories|slice:":5" %}<li><a href="{% url 'shop' %}?category={{ category.slug }}">{{ category.name }}</a></li>{% endfor %}</ul></div><div class="col-12 col-sm-12 col-md-3 footer-links"><h4>Informations</h4><ul><li><a href="{% url 'about_us' %}">About us</a></li><li><a href="#">Careers</a></li><li><a href="#">Privacy policy</a></li><li><a href="#">Terms & condition</a></li></ul></div><div class="col-12 col-sm-12 col-md-3 footer-links"><h4>Customer Services</h4><ul><li><a href="{% url 'faqs' %}">FAQ's</a></li><li><a href="{% url 'contact_us' %}">Contact Us</a></li><li><a href="#">Orders and Returns</a></li></ul></div><div class="col-12 col-sm-12 col-md-3 contact-box"><h4>Contact Us</h4><ul class="addressFooter">{% if site_settings.address %}<li><i class="icon anm anm-map-marker-al"></i><p>{{ site_settings.address }}</p></li>{% endif %}{% if site_settings.phone %}<li class="phone"><i class="icon anm anm-phone-s"></i><p>{{ site_settings.phone }}</p></li>{% endif %}{% if site_settings.email %}<li class="email"><i class="icon anm anm-envelope-l"></i><p>{{ site_settings.email }}</p></li>{% endif %}</ul></div></div></div><hr><div class="footer-bottom"><div class="row"><div class="col-12 col-sm-12 col-md-6 copyright text-sm-center text-md-left"><span>&copy; 2026 Verity Bazar. All rights reserved.</span></div><div class="col-12 col-sm-12 col-md-6 payment-icons text-right"><ul class="payment-icons list--inline"><li><i class="icon fa fa-cc-visa"></i></li><li><i class="icon fa fa-cc-mastercard"></i></li><li><i class="icon fa fa-cc-paypal"></i></li><li><i class="icon fa fa-credit-card"></i></li></ul></div></div></div></div></div>
+    </footer>
+    <span id="site-scroll"><i class="icon anm anm-angle-up-r"></i></span>
+    
+    <!-- Scripts -->
+    <script src="{% static 'js/vendor/jquery-3.3.1.min.js' %}"></script>
+    <script src="{% static 'js/vendor/jquery.cookie.js' %}"></script>
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'js/plugins.js' %}"></script>
+    <script src="{% static 'js/main.js' %}"></script>
+    
+    <script>
+        function showNotification(message, type) {
+            $('#cart-notification').remove();
+            var bgColor = type === 'success' ? '#2c6e2f' : (type === 'info' ? '#2c7a7d' : '#c0392b');
+            var notification = $('<div id="cart-notification" style="background:'+bgColor+';padding:12px 18px;border-radius:8px;">'+message+'</div>');
+            $('body').append(notification);
+            setTimeout(function(){ notification.fadeOut(300, function(){ $(this).remove(); }); }, 3500);
+        }
+        function updateNavbarCart() { $.ajax({ url: '{% url "get_cart_data" %}', type: 'GET', success: function(r) { if(r.cart_items_html) $('#header-cart').html(r.cart_items_html); if(r.cart_count!==undefined) $('#CartCount').text(r.cart_count); } }); }
+        function updateCartItemQty(itemId, qty) { if(qty<1)qty=1; $.ajax({ url: '{% url "update_cart" %}', type: 'POST', data: { 'item_id': itemId, 'quantity': qty, 'csrfmiddlewaretoken': '{{ csrf_token }}' }, success: function(r){ if(r.success){ $('#CartCount').text(r.cart_count); $('#cart-qty-'+itemId).val(qty); $('#header-cart .total .product-price .money').text('₨'+r.cart_subtotal); } } }); }
+        function updateCartItem(element, itemId, action) { var qtyInput = $(element).closest('.qtyField').find('.qty'); var val = parseInt(qtyInput.val()); if(action==='minus' && val>1) val--; else if(action==='plus') val++; else return; updateCartItemQty(itemId, val); }
+        function removeCartItem(el, itemId){ $.ajax({ url: '{% url "remove_from_cart" %}', type:'POST', data:{'item_id':itemId,'csrfmiddlewaretoken':'{{ csrf_token }}'}, success:function(r){ if(r.success){ $('#CartCount').text(r.cart_count); $(el).closest('.item').remove(); if($('#header-cart .mini-products-list .item').length===0) $('#header-cart').html('<div class="text-center p-3"><p>Your cart is empty</p></div>'); } } }); }
+        function removeFromCheckout(itemId){ if(!confirm('Remove this item?')) return; $.ajax({ url:'{% url "remove_from_cart" %}', type:'POST', data:{'item_id':itemId,'csrfmiddlewaretoken':'{{ csrf_token }}'}, success:function(r){ if(r.success){ $('#checkout-item-'+itemId).remove(); $('#CartCount').text(r.cart_count); updateNavbarCart(); var newSub = parseFloat(r.cart_subtotal); $('#checkout-subtotal').text('₨'+newSub.toFixed(2)); $('#checkout-total').html('<strong>₨'+newSub.toFixed(2)+'</strong>'); if($('.order-table tbody tr').length===0) location.reload(); } } }); }
+
+        $(document).ready(function(){
+            // *** CHECKOUT FORM SUBMIT - FULLY INDEPENDENT, DOES NOT BLOCK OR RELY ON NEWSLETTER ***
+            $('#checkoutForm').off('submit').on('submit', function(e){
+                e.preventDefault();
+                var $form = $(this);
+                var $btn = $('#place-order-btn');
+                var originalHtml = $btn.html();
+                // Basic validation
+                var required = ['#input-firstname','#input-lastname','#input-email','#input-telephone','#input-address-1','#input-city','#input-postcode','#input-country','#input-zone'];
+                var missing = false;
+                required.forEach(function(sel){ if(!$(sel).val()) missing=true; });
+                if(missing){ showNotification('Please fill all required fields (*).','error'); return; }
+                var email = $('#input-email').val();
+                if(!/^[^\s@]+@([^\s@.,]+\.)+[^\s@.,]{2,}$/.test(email)){ showNotification('Valid email required.','error'); return; }
+                var phone = $('#input-telephone').val();
+                if(!phone || phone.length<6){ showNotification('Enter a valid phone number.','error'); return; }
+                var paymentMethod = $('input[name="payment_method"]:checked').val() || 'cod';
+                $btn.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...').prop('disabled',true);
+                $.ajax({
+                    url: '{% url "checkout" %}',
+                    type: 'POST',
+                    data: $form.serialize() + '&payment_method=' + paymentMethod,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    success: function(resp){
+                        if(resp.success){
+                            showNotification('Order placed! Redirecting...','success');
+                            setTimeout(function(){ window.location.href = resp.redirect_url; }, 1500);
+                        } else { showNotification(resp.message || 'Checkout error','error'); $btn.html(originalHtml).prop('disabled',false); }
+                    },
+                    error: function(xhr){
+                        var err = xhr.responseJSON?.message || 'Server error, please try again.';
+                        showNotification(err,'error');
+                        $btn.html(originalHtml).prop('disabled',false);
+                    }
+                });
+            });
+            
+            // *** NEWSLETTER FORM - FULLY SEPARATE, DOES NOT AFFECT CHECKOUT SUBMIT ***
+            $('#newsletter-form-footer').off('submit').on('submit', function(e){
+                e.preventDefault();
+                e.stopPropagation();
+                var $form = $(this);
+                var $btn = $form.find('button[type="submit"]');
+                var originalBtnText = $btn.html();
+                var email = $form.find('input[name="EMAIL"]').val();
+                if(!email){ showNotification('Please enter email address','error'); return; }
+                var emailPattern = /^[^\s@]+@([^\s@.,]+\.)+[^\s@.,]{2,}$/;
+                if(!emailPattern.test(email)){ showNotification('Valid email address required','error'); return; }
+                $btn.html('<span class="spinner-border spinner-border-sm"></span> Subscribing...').prop('disabled',true);
+                $.ajax({
+                    url: '{% url "subscribe_newsletter" %}',
+                    type: 'POST',
+                    data: $form.serialize(),
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    success: function(resp){
+                        showNotification(resp.message || 'Subscribed successfully!','success');
+                        $form[0].reset();
+                    },
+                    error: function(xhr){
+                        var msg = xhr.responseJSON?.message || 'Subscription failed. Please retry.';
+                        showNotification(msg,'error');
+                    },
+                    complete: function(){ $btn.html(originalBtnText).prop('disabled',false); }
+                });
+                return false;
+            });
+        });
+    </script>
+</div>
+</body>
+</html>

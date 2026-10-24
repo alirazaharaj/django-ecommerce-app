@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+{% load static %}
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    
+    <!-- Title Tags with SEO Structure -->
+    <title>Track Order - {{ site_settings.site_name|default:"Belle" }} | Track Your Shipment</title>
+    <meta name="title" content="Track Order - {{ site_settings.site_name|default:'Belle' }}">
+    <meta name="description" content="Track your order status online at {{ site_settings.site_name|default:'Belle' }}. Enter your order ID and email to get real-time shipping updates, delivery status & more.">
+    
+    <!-- Open Graph / Social Media Meta Tags -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta property="og:title" content="Track Order - {{ site_settings.site_name|default:'Belle' }}">
+    <meta property="og:description" content="Check your order status and tracking information. Real-time updates on your shipment delivery.">
+    <meta property="og:image" content="{% static 'images/logo.svg' %}">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Track Order - {{ site_settings.site_name|default:'Belle' }}">
+    <meta name="twitter:description" content="Enter your order details to track your package in real-time.">
+    <meta name="twitter:image" content="{% static 'images/logo.svg' %}">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="{{ request.build_absolute_uri }}">
+    
+    <!-- Keywords -->
+    <meta name="keywords" content="track order, order status, shipment tracking, delivery tracking, track package">
+    
+    <!-- Robots -->
+    <meta name="robots" content="index, follow">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="{% if site_settings.favicon %}{{ site_settings.favicon.url }}{% else %}{% static 'images/favicon.png' %}{% endif %}" />
+    
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="{% static 'css/plugins.css' %}">
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/responsive.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <style>
+        /* Logo max-width control */
+        .logo img {
+            max-width: 30%;
+        }
+
+        @media (max-width: 768px) {
+            .logo img {
+                max-width: 25%;
+            }
+        }
+        
+        /* Fix for main content spacing - prevent navbar overlap */
+        .main-content-wrap {
+            padding-top: 30px;
+            min-height: 500px;
+        }
+        
+        /* Cart Dropdown Styles - Click to open */
+        .site-cart {
+            position: relative;
+        }
+        
+        #header-cart {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            min-width: 320px;
+            background: #fff;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+            border-radius: 8px;
+            z-index: 1000;
+            display: none;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        
+        #header-cart.show {
+            display: block;
+        }
+        
+        .site-header__cart {
+            cursor: pointer;
+        }
+        
+        .mini-products-list {
+            list-style: none;
+            margin: 0;
+            padding: 10px;
+            max-height: 350px;
+            overflow-y: auto;
+        }
+        
+        .mini-products-list .item {
+            display: flex;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            position: relative;
+        }
+        
+        .mini-products-list .product-image {
+            width: 70px;
+            margin-right: 10px;
+        }
+        
+        .mini-products-list .product-image img {
+            width: 100%;
+            border: 1px solid #eee;
+        }
+        
+        .mini-products-list .product-details {
+            flex: 1;
+            position: relative;
+            padding-right: 25px;
+        }
+        
+        .mini-products-list .product-details .remove {
+            position: absolute;
+            right: 0;
+            top: 0;
+            color: #999;
+            cursor: pointer;
+        }
+        
+        .mini-products-list .product-details .remove:hover {
+            color: #000;
+        }
+        
+        .mini-products-list .product-details .pName {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #333;
+            text-decoration: none;
+        }
+        
+        .mini-products-list .product-details .pName:hover {
+            color: #3CB371;
+        }
+        
+        .mini-products-list .product-details .variant-cart {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .wrapQtyBtn {
+            margin: 5px 0;
+        }
+        
+        .qtyField {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .qtyField .label {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .qtyBtn {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            line-height: 22px;
+            text-align: center;
+            border: 1px solid #ddd;
+            cursor: pointer;
+            background: #f5f5f5;
+            font-size: 12px;
+        }
+        
+        .qtyBtn:hover {
+            background: #e0e0e0;
+        }
+        
+        .qtyField .qty {
+            width: 40px;
+            text-align: center;
+            border: 1px solid #ddd;
+            padding: 4px;
+            font-size: 12px;
+        }
+        
+        .priceRow .product-price {
+            font-weight: 600;
+            color: #333;
+            margin-top: 5px;
+        }
+        
+        .total {
+            padding: 15px;
+            background: #f9f9f9;
+            border-top: 1px solid #eee;
+        }
+        
+        .total-in {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .buttonSet {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        .buttonSet .btn {
+            padding: 8px 15px;
+            font-size: 12px;
+        }
+        
+        .btn-secondary { 
+            background-color: #3CB371;
+            color: #fff;
+            border: none;
+        }
+        
+        .btn-secondary:hover { 
+            background-color: #2c9c5c;
+            color: #fff;
+        }
+        
+        .cart-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.3);
+            z-index: 999;
+            display: none !important
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        .cart-notification-msg {
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        /* Order tracking styles */
+        .badge-lg {
+            padding: 8px 16px;
+            font-size: 14px;
+            border-radius: 20px;
+        }
+        
+        .timeline-item {
+            display: flex;
+            margin-bottom: 30px;
+            position: relative;
+        }
+        
+        .timeline-item:not(.last):before {
+            content: '';
+            position: absolute;
+            left: 20px;
+            top: 40px;
+            bottom: -30px;
+            width: 2px;
+            background: #e0e0e0;
+        }
+        
+        .timeline-item.completed:not(.last):before {
+            background: #4CAF50;
+        }
+        
+        .timeline-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 20px;
+            flex-shrink: 0;
+            color: white;
+        }
+        
+        .timeline-content {
+            flex: 1;
+        }
+        
+        .order-item img {
+            max-width: 100%;
+            height: auto;
+        }
+        
+        .card {
+            border-radius: 10px;
+            overflow: hidden;
+            border: none;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+        
+        .card-header {
+            border-bottom: 1px solid #eee;
+            background-color: #fff;
+        }
+        
+        .bg-primary {
+            background-color: #3CB371 !important;
+        }
+        
+        .btn-primary {
+            background-color: #3CB371;
+            border-color: #3CB371;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2c9c5c;
+            border-color: #2c9c5c;
+        }
+        
+        @media (max-width: 768px) {
+            .timeline-icon {
+                width: 30px;
+                height: 30px;
+                font-size: 12px;
+            }
+            .timeline-item:not(.last):before {
+                left: 15px;
+                top: 35px;
+            }
+            .main-content-wrap {
+                padding-top: 15px;
+            }
+        }
+        
+        /* Search drawer fix */
+        .search {
+            z-index: 10000;
+        }
+        .search.open {
+            display: block;
+        }
+        @media (max-width: 768px) {
+            .header-wrap {
+                position: relative !important;
+                margin-bottom: 20px;
+            }
+            .main-content-wrap {
+                padding-top: 0rem !important;  
+            }
+            .top-header, .header-wrap { 
+                top: 0;  
+            }
+        }
+    </style>
+</head>
+
+<body class="template-index belle template-index-belle">
+    
+    <!-- Cart Overlay -->
+    <div class="cart-overlay" id="cartOverlay"></div>
+     
+
+    <!--Top Header-->
+    <div class="top-header">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-10 col-sm-8 col-md-5 col-lg-4">
+                    <div class="currency-picker">
+                        <span class="selected-currency">PKR</span>
+                    </div>
+                    <div class="language-dropdown">
+                        <span class="language-dd">English</span>
+                    </div>
+                    <p class="phone-no"><i class="anm anm-phone-s"></i>
+                        {{ site_settings.phone|default:"+440 0(111)044 833" }}</p>
+                </div>
+                <div class="col-sm-4 col-md-4 col-lg-4 d-none d-lg-none d-md-block d-lg-block">
+                    <div class="text-center">
+                        <p class="top-header_middle-text">Countrywide Express Shipping</p>
+                    </div>
+                </div>
+                <div class="col-2 col-sm-4 col-md-3 col-lg-4 text-right">
+                    <span class="user-menu d-block d-lg-none"><i class="anm anm-user-al" aria-hidden="true"></i></span>
+                    <ul class="customer-links list-inline">
+                        {% if user.is_authenticated %}
+                        <li><a href="{% url 'my_account' %}"><i class="anm anm-user-al"></i> {{ user.username }}</a></li>
+                        <li><a href="{% url 'track_order' %}"><i class="anm anm-truck-l"></i> Track Order</a></li>
+                        <li><a href="{% url 'logout' %}"><i class="anm anm-sign-out-l"></i> Logout</a></li>
+                        {% else %}
+                        <li><a href="{% url 'login' %}"><i class="anm anm-sign-in-l"></i> Login</a></li>
+                        <li><a href="{% url 'register' %}"><i class="anm anm-user-plus-l"></i> Register</a></li>
+                        {% endif %}
+                        <li><a href="{% url 'wishlist' %}"><i class="anm anm-heart-l"></i> Wishlist</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--End Top Header-->
+
+    <!--Header-->
+    <div class="header-wrap classicHeader animated d-flex">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="logo col-md-2 col-lg-2 d-none d-lg-block">
+                        <a href="{% url 'home' %}" style="display: flex; align-items: center; text-decoration: none;">
+                            <img src="{% if site_settings.logo %}{{ site_settings.logo.url }}{% else %}{% static 'images/logo.svg' %}{% endif %}"
+                                alt="{{ site_settings.site_name }}" title="{{ site_settings.site_name }}" 
+                                style="max-width: 50px; margin-right: 10px;" />
+                            <span style="font-size: 18px; font-weight: 700; color: #333; letter-spacing: 1px; white-space: nowrap;">
+                                VERITY BAZAR
+                            </span>
+                        </a>
+                    </div>
+                <div class="col-2 col-sm-3 col-md-3 col-lg-8">
+                    <div class="d-block d-lg-none">
+                        <button type="button" class="btn--link site-header__menu js-mobile-nav-toggle mobile-nav--open">
+                            <i class="icon anm anm-times-l"></i>
+                            <i class="anm anm-bars-r"></i>
+                        </button>
+                    </div>
+                    <nav class="grid__item" id="AccessibleNav">
+                        <ul id="siteNav" class="site-nav medium center hidearrow">
+                            <li class="lvl1"><a href="{% url 'home' %}">Home</a></li>
+                            <li class="lvl1 parent megamenu">
+                                <a href="{% url 'shop' %}">Shop <i class="anm anm-angle-down-l"></i></a>
+                                <div class="megamenu style1">
+                                    <ul class="grid mmWrapper">
+                                        <li class="grid__item large-up--one-whole">
+                                            <ul class="grid">
+                                                <li class="grid__item lvl-1 col-md-4 col-lg-4">
+                                                    <a href="#" class="site-nav lvl-1">Shop by Category</a>
+                                                    <ul class="subLinks">
+                                                        {% for category in categories|slice:":8" %}
+                                                        <li class="lvl-2"><a href="{% url 'shop' %}?category={{ category.slug }}" class="site-nav lvl-2">{{ category.name }}</a></li>
+                                                        {% endfor %}
+                                                        <li class="lvl-2"><a href="{% url 'shop' %}" class="site-nav lvl-2">View All →</a></li>
+                                                    </ul>
+                                                </li>
+                                                <li class="grid__item lvl-1 col-md-4 col-lg-4">
+                                                    <a href="#" class="site-nav lvl-1">Shop by Price</a>
+                                                    <ul class="subLinks">
+                                                        <li class="lvl-2"><a href="{% url 'shop' %}?min_price=0&max_price=50" class="site-nav lvl-2">Under Rs50</a></li>
+                                                        <li class="lvl-2"><a href="{% url 'shop' %}?min_price=50&max_price=100" class="site-nav lvl-2">Rs50 - Rs100</a></li>
+                                                        <li class="lvl-2"><a href="{% url 'shop' %}?min_price=100&max_price=200" class="site-nav lvl-2">Rs100 - Rs200</a></li>
+                                                        <li class="lvl-2"><a href="{% url 'shop' %}?min_price=200" class="site-nav lvl-2">Rs200 & Above</a></li>
+                                                    </ul>
+                                                </li>
+                                                <li class="grid__item lvl-1 col-md-4 col-lg-4">
+                                                    <a href="#" class="site-nav lvl-1">Shop by Label</a>
+                                                    <ul class="subLinks">
+                                                        <li class="lvl-2"><a href="{% url 'shop' %}?on_sale=true" class="site-nav lvl-2">On Sale <span class="lbl nm_label1">Hot</span></a></li>
+                                                        <li class="lvl-2"><a href="{% url 'shop' %}?featured=true" class="site-nav lvl-2">Featured</a></li>
+                                                        <li class="lvl-2"><a href="{% url 'shop' %}?best_selling=true" class="site-nav lvl-2">Best Selling</a></li>
+                                                        <li class="lvl-2"><a href="{% url 'shop' %}?new_arrival=true" class="site-nav lvl-2">New Arrivals <span class="lbl nm_label2">New</span></a></li>
+                                                    </ul>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </li>
+                            <li class="lvl1"><a href="{% url 'track_order' %}">Track Order</a></li>
+                            <li class="lvl1"><a href="{% url 'compare' %}">Compare Product</a></li>
+                            <li class="lvl1 parent dropdown">
+                                <a href="#">Pages <i class="anm anm-angle-down-l"></i></a>
+                                <ul class="dropdown">
+                                    <li><a href="{% url 'cart' %}" class="site-nav">Cart Page</a></li>
+                                    <li><a href="{% url 'checkout' %}" class="site-nav">Checkout</a></li>
+                                    <li><a href="{% url 'about_us' %}" class="site-nav">About Us <span class="lbl nm_label1">New</span></a></li>
+                                    <li><a href="{% url 'contact_us' %}" class="site-nav">Contact Us</a></li>
+                                    <li><a href="{% url 'faqs' %}" class="site-nav">FAQs</a></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+                <!-- Mobile Logo -->
+                    <div class="col-6 col-sm-6 col-md-6 col-lg-2 d-block d-lg-none mobile-logo">
+                        <div class="logo">
+                            <a href="{% url 'home' %}" style="display: flex; align-items: center; text-decoration: none;">
+                                <img src="{% if site_settings.logo %}{{ site_settings.logo.url }}{% else %}{% static 'images/logo.svg' %}{% endif %}"
+                                    alt="{{ site_settings.site_name }}" 
+                                    style="max-width: 40px; margin-right: 8px;" />
+                                <span style="font-size: 16px; font-weight: 700; color: #333; letter-spacing: 1px; white-space: nowrap;">
+                                    VERITY BAZAR
+                                </span>
+                            </a>
+                        </div>
+                    </div>
+                <div class="col-4 col-sm-3 col-md-3 col-lg-2">
+                    <div class="site-cart">
+                        <a href="javascript:void(0);" class="site-header__cart" title="Cart" id="cartIcon">
+                            <i class="icon anm anm-bag-l"></i>
+                            <span id="CartCount" class="site-header__cart-count">{{ cart_count|default:0 }}</span>
+                        </a>
+                        <div id="header-cart" class="block block-cart">
+                            {% if cart and cart.items.exists %}
+                            <ul class="mini-products-list">
+                                {% for item in cart.items.all|slice:":5" %}
+                                <li class="item" id="cart-item-{{ item.id }}">
+                                    <a class="product-image" href="{{ item.product.get_absolute_url }}">
+                                        <img src="{% if item.product.primary_image %}{{ item.product.primary_image.url }}{% else %}{% static 'images/product-images/default.jpg' %}{% endif %}"
+                                            alt="{{ item.product.name }}" />
+                                    </a>
+                                    <div class="product-details">
+                                        <a href="#" class="remove" onclick="removeCartItem(this, {{ item.id }}); return false;">
+                                            <i class="anm anm-times-l" aria-hidden="true"></i>
+                                        </a>
+                                        <a class="pName" href="{{ item.product.get_absolute_url }}">
+                                            {{ item.product.name }}
+                                        </a>
+                                        {% if item.variant %}
+                                        <div class="variant-cart">
+                                            {% if item.variant.size %}
+                                            <span class="cart-size">Size: {{ item.variant.size }}</span>
+                                            {% endif %}<br>
+                                            {% if item.variant.color %}
+                                            <span class="cart-color">Color: {{ item.variant.color }}</span>
+                                            {% endif %}
+                                            {% if not item.variant.size and not item.variant.color %}
+                                            {{ item.variant.name }}
+                                            {% endif %}
+                                        </div>
+                                        {% endif %}
+                                        <div class="wrapQtyBtn">
+                                            <div class="qtyField">
+                                                <span class="label">Qty:</span>
+                                                <a class="qtyBtn minus" href="javascript:void(0);" onclick="updateCartItem(this, {{ item.id }}, 'minus')">
+                                                    <i class="fa anm anm-minus-r" aria-hidden="true"></i>
+                                                </a>
+                                                <input type="text" value="{{ item.quantity }}" class="product-form__input qty" id="cart-qty-{{ item.id }}" readonly>
+                                                <a class="qtyBtn plus" href="javascript:void(0);" onclick="updateCartItem(this, {{ item.id }}, 'plus')">
+                                                    <i class="fa anm anm-plus-r" aria-hidden="true"></i>
+                                                </a>
+                                            </div>
+                                        </div>
+                                        <div class="priceRow">
+                                            <div class="product-price">
+                                                <span class="item-price-display" id="item-price-{{ item.id }}">Rs {{ item.unit_price|default:item.price }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            <div class="total">
+                                <div class="total-in">
+                                    <span class="label">Cart Subtotal:</span>
+                                    <span class="product-price"><span class="money">Rs{{ cart.subtotal }}</span></span>
+                                </div>
+                                <div class="buttonSet text-center">
+                                    <a href="{% url 'cart' %}" class="btn btn-secondary btn--small">View Cart</a>
+                                    <a href="{% url 'checkout' %}" class="btn btn-secondary btn--small">Checkout</a>
+                                </div>
+                            </div>
+                            {% else %}
+                            <div class="text-center p-3">
+                                <p>Your cart is empty</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div> 
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--End Header-->
+
+    <!--Mobile Menu-->
+    <div class="mobile-nav-wrapper" role="navigation">
+        <div class="closemobileMenu"><i class="icon anm anm-times-l pull-right"></i> Close Menu</div>
+        <ul id="MobileNav" class="mobile-nav">
+            <li class="lvl1"><a href="{% url 'home' %}">Home</a></li>
+            <li class="lvl1 parent megamenu">
+                <a href="{% url 'shop' %}">Shop <i class="anm anm-plus-l"></i></a>
+                <ul>
+                    <li><a href="{% url 'shop' %}" class="site-nav">All Products</a></li>
+                    {% for category in categories %}
+                    <li><a href="{% url 'shop' %}?category={{ category.slug }}" class="site-nav">{{ category.name }}</a></li>
+                    {% endfor %}
+                </ul>
+            </li>
+            <li class="lvl1"><a href="{% url 'track_order' %}">Track Order</a></li>
+            <li class="lvl1"><a href="{% url 'compare' %}">Compare Product</a></li>
+            <li class="lvl1 parent megamenu">
+                <a href="#">Pages <i class="anm anm-plus-l"></i></a>
+                <ul>
+                    <li><a href="{% url 'cart' %}" class="site-nav">Cart Page</a></li>
+                    <li><a href="{% url 'checkout' %}" class="site-nav">Checkout</a></li>
+                    <li><a href="{% url 'about_us' %}" class="site-nav">About Us</a></li>
+                    <li><a href="{% url 'contact_us' %}" class="site-nav">Contact Us</a></li>
+                    <li><a href="{% url 'faqs' %}" class="site-nav">FAQs</a></li>
+                    <li><a href="{% url 'wishlist' %}" class="site-nav">Wishlist</a></li>
+                </ul>
+            </li>
+            {% if user.is_authenticated %}
+            <li class="lvl1"><a href="{% url 'my_account' %}"><i class="anm anm-user-al"></i> {{ user.username }}</a></li>
+            <li class="lvl1"><a href="{% url 'logout' %}"><i class="anm anm-sign-out-l"></i> Logout</a></li>
+            {% else %}
+            <li class="lvl1"><a href="{% url 'login' %}"><i class="anm anm-sign-in-l"></i> Login</a></li>
+            <li class="lvl1"><a href="{% url 'register' %}"><i class="anm anm-user-plus-l"></i> Register</a></li>
+            {% endif %}
+        </ul>
+    </div>
+    <!--End Mobile Menu-->
+
+    <!-- Main Content - Order Tracking Details -->
+    <div class="main-content-wrap">
+        <div class="container mt-4 mt-md-5 mb-5">
+            <!-- Order Header -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card shadow mb-4">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-6">
+                                    <h3 class="mb-2">Order #{{ order.order_number }}</h3>
+                                    <p class="text-muted mb-0">
+                                        <i class="fa fa-calendar"></i> Placed on: {{ order.created_at|date:"F j, Y" }}
+                                    </p>
+                                    <p class="text-muted">
+                                        <i class="fa fa-credit-card"></i> Payment: {{ order.get_payment_status_display }}
+                                    </p>
+                                </div>
+                                <div class="col-md-6 text-md-right">
+                                    <div class="order-status">
+                                        {% if order.status == 'cancelled' %}
+                                        <span class="badge badge-danger badge-lg">Cancelled</span>
+                                        {% elif order.status == 'delivered' %}
+                                        <span class="badge badge-success badge-lg">Delivered</span>
+                                        {% elif order.status == 'shipped' %}
+                                        <span class="badge badge-info badge-lg">Shipped</span>
+                                        {% elif order.status == 'processing' %}
+                                        <span class="badge badge-warning badge-lg">Processing</span>
+                                        {% else %}
+                                        <span class="badge badge-secondary badge-lg">Pending</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tracking Timeline -->
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card shadow mb-4">
+                        <div class="card-header bg-white">
+                            <h4 class="mb-0"><i class="fa fa-chart-line"></i> Order Status Timeline</h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="tracking-timeline">
+                                {% for status in tracking_status %}
+                                <div class="timeline-item {% if forloop.last %}last{% endif %} {% if status.completed %}completed{% endif %}">
+                                    <div class="timeline-icon" style="background-color: {{ status.color }};">
+                                        <i class="fa {{ status.icon }}"></i>
+                                    </div>
+                                    <div class="timeline-content">
+                                        <h5 class="mb-1">{{ status.status }}</h5>
+                                        {% if status.date %}
+                                        <small class="text-muted">{{ status.date|date:"F j, Y g:i A" }}</small>
+                                        {% endif %}
+                                        <p class="mb-0 mt-2">{{ status.description }}</p>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Summary -->
+                <div class="col-md-4">
+                    <div class="card shadow mb-4">
+                        <div class="card-header bg-white">
+                            <h4 class="mb-0"><i class="fa fa-shopping-cart"></i> Order Summary</h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="order-items">
+                                {% for item in order.items.all %}
+                                <div class="order-item mb-3">
+                                    <div class="row">
+                                        <div class="col-4">
+                                            {% if item.product.primary_image %}
+                                            <img src="{{ item.product.primary_image.url }}" alt="{{ item.product_name }}" class="img-fluid rounded">
+                                            {% else %}
+                                            <img src="{% static 'images/product-images/default.jpg' %}" alt="{{ item.product_name }}" class="img-fluid rounded">
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-8">
+                                            <h6 class="mb-1">{{ item.product_name }}</h6>
+                                            {% if item.variant_name %}
+                                            <small class="text-muted">{{ item.variant_name }}</small>
+                                            {% endif %}
+                                            <div class="mt-1">
+                                                <span class="badge badge-secondary">Qty: {{ item.quantity }}</span>
+                                                <span class="badge badge-info">Rs{{ item.price }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% if not forloop.last %}<hr>{% endif %}
+                                {% endfor %}
+                            </div>
+
+                            <hr>
+
+                            <div class="order-totals">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Subtotal:</span>
+                                    <strong>Rs{{ order.subtotal }}</strong>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Shipping:</span>
+                                    <strong>Rs{{ order.shipping_cost }}</strong>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Tax:</span>
+                                    <strong>Rs{{ order.tax }}</strong>
+                                </div>
+                                <hr>
+                                <div class="d-flex justify-content-between">
+                                    <span class="h5">Total:</span>
+                                    <strong class="h5 text-primary">Rs{{ order.total }}</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Shipping Information -->
+                    <div class="card shadow">
+                        <div class="card-header bg-white">
+                            <h4 class="mb-0"><i class="fa fa-map-marker-alt"></i> Shipping Information</h4>
+                        </div>
+                        <div class="card-body">
+                            <p class="mb-1"><strong>{{ order.first_name }} {{ order.last_name }}</strong></p>
+                            <p class="mb-1">{{ order.address }}</p>
+                            <p class="mb-1">{{ order.city }}, {{ order.state }} {{ order.zip_code }}</p>
+                            <p class="mb-1">{{ order.country }}</p>
+                            <p class="mb-0 mt-2"><i class="fa fa-phone"></i> {{ order.phone }}</p>
+                            <p class="mb-0"><i class="fa fa-envelope"></i> {{ order.email }}</p>
+
+                            {% if order.tracking_number %}
+                            <hr>
+                            <div class="tracking-info">
+                                <h6>Tracking Information</h6>
+                                <p class="mb-1"><strong>Carrier:</strong> {{ order.get_tracking_company_display }}</p>
+                                <p class="mb-0"><strong>Tracking Number:</strong> {{ order.tracking_number }}</p>
+                            </div>
+                            {% endif %}
+
+                            {% if order.estimated_delivery %}
+                            <hr>
+                            <div class="estimated-delivery">
+                                <h6>Estimated Delivery</h6>
+                                <p class="mb-0 text-success">
+                                    <i class="fa fa-calendar-check"></i> {{ order.estimated_delivery|date:"F j, Y" }}
+                                </p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--Footer-->
+    <footer id="footer">
+        <div class="newsletter-section">
+            <div class="container">
+                <div class="row">
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-7 w-100 d-flex justify-content-start align-items-center">
+                        <div class="display-table">
+                            <div class="display-table-cell footer-newsletter">
+                                <div class="section-header text-center">
+                                    <label class="h2"><span>sign up for </span>newsletter</label>
+                                </div>
+                                <form action="{% url 'subscribe_newsletter' %}" method="post" id="newsletter-form-footer">
+                                    {% csrf_token %}
+                                    <div class="input-group">
+                                        <input type="email" class="input-group__field newsletter__input" name="EMAIL"
+                                            value="" placeholder="Email address" required="">
+                                        <span class="input-group__btn">
+                                            <button type="submit" class="btn newsletter__submit" name="commit"
+                                                id="SubscribeFooter"><span class="newsletter__submit-text--large">Subscribe</span></button>
+                                        </span>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-5 d-flex justify-content-end align-items-center">
+                        <div class="footer-social">
+                            <ul class="list--inline site-footer__social-icons social-icons">
+                                {% if site_settings.facebook_url %}
+                                <li><a class="social-icons__link" href="{{ site_settings.facebook_url }}" target="_blank" title="Facebook"><i class="icon icon-facebook"></i></a></li>
+                                {% endif %}
+                                {% if site_settings.twitter_url %}
+                                <li><a class="social-icons__link" href="{{ site_settings.twitter_url }}" target="_blank" title="Twitter"><i class="icon icon-twitter"></i></a></li>
+                                {% endif %}
+                                {% if site_settings.instagram_url %}
+                                <li><a class="social-icons__link" href="{{ site_settings.instagram_url }}" target="_blank" title="Instagram"><i class="icon icon-instagram"></i></a></li>
+                                {% endif %}
+                                {% if site_settings.pinterest_url %}
+                                <li><a class="social-icons__link" href="{{ site_settings.pinterest_url }}" target="_blank" title="Pinterest"><i class="icon icon-pinterest"></i></a></li>
+                                {% endif %}
+                                {% if site_settings.youtube_url %}
+                                <li><a class="social-icons__link" href="{{ site_settings.youtube_url }}" target="_blank" title="YouTube"><i class="icon icon-youtube"></i></a></li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="site-footer">
+            <div class="container">
+                <div class="footer-top">
+                    <div class="row">
+                        <div class="col-12 col-sm-12 col-md-3 col-lg-3 footer-links">
+                            <h4 class="h4">Quick Shop</h4>
+                            <ul>
+                                {% for category in categories|slice:":5" %}
+                                <li><a href="{% url 'shop' %}?category={{ category.slug }}">{{ category.name }}</a></li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <div class="col-12 col-sm-12 col-md-3 col-lg-3 footer-links">
+                            <h4 class="h4">Informations</h4>
+                            <ul>
+                                <li><a href="{% url 'about_us' %}">About us</a></li>
+                                <li><a href="#">Careers</a></li>
+                                <li><a href="#">Privacy policy</a></li>
+                                <li><a href="#">Terms &amp; condition</a></li>
+                                <li><a href="#">My Account</a></li>
+                            </ul>
+                        </div>
+                        <div class="col-12 col-sm-12 col-md-3 col-lg-3 footer-links">
+                            <h4 class="h4">Customer Services</h4>
+                            <ul>
+                                <li><a href="#">Request Personal Data</a></li>
+                                <li><a href="{% url 'faqs' %}">FAQ's</a></li>
+                                <li><a href="{% url 'contact_us' %}">Contact Us</a></li>
+                                <li><a href="#">Orders and Returns</a></li>
+                                <li><a href="#">Support Center</a></li>
+                            </ul>
+                        </div>
+                        <div class="col-12 col-sm-12 col-md-3 col-lg-3 contact-box">
+                            <h4 class="h4">Contact Us</h4>
+                            <ul class="addressFooter">
+                                {% if site_settings.address %}
+                                <li><i class="icon anm anm-map-marker-al"></i>
+                                    <p>{{ site_settings.address }}</p>
+                                </li>
+                                {% endif %}
+                                {% if site_settings.phone %}
+                                <li class="phone"><i class="icon anm anm-phone-s"></i>
+                                    <p>{{ site_settings.phone }}</p>
+                                </li>
+                                {% endif %}
+                                {% if site_settings.email %}
+                                <li class="email"><i class="icon anm anm-envelope-l"></i>
+                                    <p>{{ site_settings.email }}</p>
+                                </li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <div class="footer-bottom">
+                    <div class="row">
+                        <div class="col-12 col-sm-12 col-md-6 col-lg-6 order-1 order-md-0 order-lg-0 order-sm-1 copyright text-sm-center text-md-left text-lg-left">
+                            <span>&copy; 2026 Verity Bazar. All rights reserved.</span>
+                        </div>
+                        <div class="col-12 col-sm-12 col-md-6 col-lg-6 payment-icons text-right text-md-center">
+                            <ul class="payment-icons list--inline">
+                                <li><i class="icon fa fa-cc-visa" aria-hidden="true"></i></li>
+                                <li><i class="icon fa fa-cc-mastercard" aria-hidden="true"></i></li>
+                                <li><i class="icon fa fa-cc-discover" aria-hidden="true"></i></li>
+                                <li><i class="icon fa fa-cc-paypal" aria-hidden="true"></i></li>
+                                <li><i class="icon fa fa-cc-amex" aria-hidden="true"></i></li>
+                                <li><i class="icon fa fa-credit-card" aria-hidden="true"></i></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <!--End Footer-->
+
+    <span id="site-scroll"><i class="icon anm anm-angle-up-r"></i></span>
+
+    <!-- jQuery and Bootstrap JS -->
+    <script src="{% static 'js/vendor/jquery-3.3.1.min.js' %}"></script>
+    <script src="{% static 'js/vendor/modernizr-3.6.0.min.js' %}"></script>
+    <script src="{% static 'js/vendor/jquery.cookie.js' %}"></script>
+    <script src="{% static 'js/vendor/wow.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'js/plugins.js' %}"></script>
+    <script src="{% static 'js/popper.min.js' %}"></script>
+    <script src="{% static 'js/lazysizes.js' %}"></script>
+    <script src="{% static 'js/main.js' %}"></script>
+
+    <!-- Cart and Search Functions -->
+    <script>
+        // ============ GLOBAL VARIABLES ============
+        var itemPrices = {};  // Store unit prices globally
+        window.addToCartInProgress = false;
+
+        // ============ NOTIFICATION FUNCTION ============
+        function showNotification(message, type) {
+            if ($('#cart-notification').length === 0) {
+                $('body').append('<div id="cart-notification" style="position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 300px;color:white;"></div>');
+            }
+            var bgColor = type === 'success' ? '#3CB371' : '#dc3545';
+            var notification = $('<div class="cart-notification-msg" style="background: ' + bgColor + '; color: white; padding: 15px; margin-bottom: 10px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); animation: fadeIn 0.3s;">' + message + '</div>');
+            $('#cart-notification').append(notification);
+            setTimeout(function() {
+                notification.fadeOut(300, function() { $(this).remove(); });
+            }, 3000);
+        }
+
+        // ============ MINI CART FUNCTIONS (navbar) ============
+
+        function updateCartItem(element, itemId, action) {
+            var qtyField = $(element).closest('.qtyField');
+            var qtyInput = qtyField.find('.qty');
+            var currentVal = parseInt(qtyInput.val());
+
+            if (action === 'minus' && currentVal > 1) {
+                currentVal--;
+            } else if (action === 'plus') {
+                currentVal++;
+            } else {
+                return;
+            }
+
+            updateCartItemQty(itemId, currentVal);
+        }
+
+        function updateCartItemQty(itemId, quantity) {
+            if (quantity < 1) quantity = 1;
+            
+            // Store unit price for this item (never changes)
+            var unitPrice = itemPrices[itemId];
+            if (!unitPrice) {
+                var priceText = $('#item-price-' + itemId).text().replace(/Rs\s*/g, '').replace(/,/g, '').trim();
+                if (!priceText) {
+                    priceText = $('#cart-item-' + itemId + ' .product-price .money, #cart-item-' + itemId + ' .item-price-display')
+                        .first().text().replace(/Rs\s*/g, '').replace(/,/g, '').trim();
+                }
+                unitPrice = parseFloat(priceText);
+                if (!isNaN(unitPrice) && unitPrice > 0) {
+                    itemPrices[itemId] = unitPrice;
+                }
+            }
+            
+            $.ajax({
+                url: '{% url "update_cart" %}',
+                type: 'POST',
+                data: {
+                    'item_id': itemId,
+                    'quantity': quantity,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Update cart count badge
+                        $('#CartCount').text(response.cart_count);
+                        
+                        // Update quantity input
+                        $('#cart-qty-' + itemId).val(quantity);
+                        
+                        // Keep showing the UNIT PRICE (don't change)
+                        if (unitPrice && unitPrice > 0) {
+                            if ($('#item-price-' + itemId).length) {
+                                $('#item-price-' + itemId).text('Rs ' + unitPrice.toFixed(2));
+                            }
+                            if ($('#cart-item-' + itemId + ' .item-price-display').length) {
+                                $('#cart-item-' + itemId + ' .item-price-display').text('Rs ' + unitPrice.toFixed(2));
+                            }
+                            if ($('#cart-item-' + itemId + ' .product-price .money').length) {
+                                $('#cart-item-' + itemId + ' .product-price .money').text('Rs ' + unitPrice.toFixed(2));
+                            }
+                        }
+                        
+                        // ONLY update the cart subtotal
+                        if (response.cart_subtotal) {
+                            $('#header-cart .total .product-price .money')
+                                .text('Rs' + parseFloat(response.cart_subtotal).toFixed(2));
+                        }
+                    }
+                },
+                error: function() {
+                    showNotification('Error updating cart', 'error');
+                }
+            });
+        }
+
+        function removeCartItem(element, itemId) {
+            $.ajax({
+                url: '{% url "remove_from_cart" %}',
+                type: 'POST',
+                data: {
+                    'item_id': itemId,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $('#CartCount').text(response.cart_count);
+                        $(element).closest('.item').remove();
+                        
+                        // Update navbar cart subtotal
+                        if (response.cart_subtotal) {
+                            $('#header-cart .total .product-price .money')
+                                .text('Rs' + parseFloat(response.cart_subtotal).toFixed(2));
+                        }
+                        
+                        // If mini cart is empty, show empty message
+                        if ($('#header-cart .mini-products-list .item').length === 0) {
+                            $('#header-cart').html('<div class="text-center p-3"><p>Your cart is empty</p></div>');
+                        }
+                        
+                        // Remove stored unit price
+                        delete itemPrices[itemId];
+                        
+                        showNotification('Item removed from cart', 'success');
+                    }
+                },
+                error: function() {
+                    showNotification('Error removing item', 'error');
+                }
+            });
+        }
+
+        // Initialize unit prices on page load
+        function initializeUnitPrices() {
+            $('#header-cart .item').each(function() {
+                var itemId = $(this).attr('id');
+                if (!itemId) return;
+                itemId = itemId.replace('cart-item-', '');
+                
+                var priceElement = $('#item-price-' + itemId);
+                if (!priceElement.length) {
+                    priceElement = $('#cart-item-' + itemId + ' .item-price-display, #cart-item-' + itemId + ' .product-price .money').first();
+                }
+                if (!priceElement.length) return;
+                
+                var priceText = priceElement.text().replace(/Rs\s*/g, '').replace(/,/g, '').trim();
+                var price = parseFloat(priceText);
+                if (!isNaN(price) && price > 0) {
+                    itemPrices[itemId] = price;
+                    priceElement.text('Rs ' + price.toFixed(2));
+                }
+            });
+        }
+
+        function updateNavbarCart() {
+            $.ajax({
+                url: '{% url "get_cart_data" %}',
+                type: 'GET',
+                success: function(response) {
+                    if (response.cart_items_html) {
+                        $('#header-cart').html(response.cart_items_html);
+                        setTimeout(function() {
+                            initializeUnitPrices();
+                        }, 100);
+                    }
+                    if (response.cart_count !== undefined) {
+                        $('#CartCount').text(response.cart_count);
+                    }
+                },
+                error: function() {
+                    console.log('Error updating cart');
+                }
+            });
+        }
+
+        // ============ ADD TO CART FUNCTION ============
+
+        function addToCart(form) {
+            if (window.addToCartInProgress) {
+                return false;
+            }
+            var formData = $(form).serialize();
+            var submitBtn = $(form).find('button[type="submit"]');
+            var originalText = submitBtn.html();
+            window.addToCartInProgress = true;
+            submitBtn.html('<i class="fa fa-spinner fa-spin"></i> Adding...').prop('disabled', true);
+            
+            $.ajax({
+                url: '{% url "add_to_cart" %}',
+                type: 'POST',
+                data: formData,
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $('#CartCount').text(response.cart_count);
+                        updateNavbarCart();
+                        showNotification('Product added to cart successfully!', 'success');
+                    } else {
+                        showNotification(response.message || 'Error adding to cart', 'error');
+                    }
+                },
+                error: function(xhr) {
+                    showNotification('Error adding to cart', 'error');
+                },
+                complete: function() {
+                    setTimeout(function() {
+                        submitBtn.html(originalText).prop('disabled', false);
+                        window.addToCartInProgress = false;
+                    }, 500);
+                }
+            });
+            return false;
+        }
+
+        // ============ DOCUMENT READY ============
+
+        $(document).ready(function() {
+            // Initialize unit prices for navbar cart
+            initializeUnitPrices();
+            
+            // Cart icon click to toggle dropdown
+            $('#cartIcon').on('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                $('#header-cart').toggleClass('show');
+                $('#cartOverlay').fadeToggle(200);
+            });
+            
+            // Close cart when clicking on overlay
+            $('#cartOverlay').on('click', function() {
+                $('#header-cart').removeClass('show');
+                $(this).fadeOut(200);
+            });
+            
+            // Close cart when clicking outside
+            $(document).on('click', function(e) {
+                if (!$(e.target).closest('.site-cart').length) {
+                    $('#header-cart').removeClass('show');
+                    $('#cartOverlay').fadeOut(200);
+                }
+            });
+            
+            // Prevent closing when clicking inside cart
+            $('#header-cart').on('click', function(e) {
+                e.stopPropagation();
+            });
+            
+            // ============ SEARCH FUNCTIONALITY ============
+            
+            // Open search drawer
+            $('.search-trigger').off('click').on('click', function(e) {
+                e.preventDefault();
+                $('.search').addClass('open');
+                setTimeout(function() {
+                    $('#search-input').focus();
+                }, 100);
+            });
+            
+            // Close search drawer
+            $('.close-btn').off('click').on('click', function(e) {
+                e.preventDefault();
+                $('.search').removeClass('open');
+            });
+            
+            // Close search on ESC key
+            $(document).on('keydown', function(e) {
+                if (e.key === 'Escape' && $('.search').hasClass('open')) {
+                    $('.search').removeClass('open');
+                }
+            });
+            
+            // Search form submission
+            $('#global-search-form').on('submit', function(e) {
+                var searchQuery = $('#search-input').val().trim();
+                if (!searchQuery) {
+                    e.preventDefault();
+                    $('#search-input').focus();
+                }
+            });
+            
+            // Add to cart form submissions
+            $(document).off('submit', 'form.variants.add').on('submit', 'form.variants.add', function(e) {
+                e.preventDefault();
+                addToCart(this);
+            });
+            $(document).off('submit', '.add-to-cart-form').on('submit', '.add-to-cart-form', function(e) {
+                e.preventDefault();
+                addToCart(this);
+            });
+            
+            // Newsletter subscription
+            $('#newsletter-form-footer').on('submit', function(e) {
+                e.preventDefault();
+                var $form = $(this);
+                var $btn = $form.find('button[type="submit"]');
+                var originalText = $btn.html();
+                $btn.html('<i class="fa fa-spinner fa-spin"></i> Subscribing...').prop('disabled', true);
+                
+                $.ajax({
+                    url: '{% url "subscribe_newsletter" %}',
+                    type: 'POST',
+                    data: $form.serialize(),
+                    success: function(response) {
+                        showNotification(response.message || 'Successfully subscribed!', 'success');
+                        $form[0].reset();
+                    },
+                    error: function(xhr) {
+                        var message = 'Error subscribing. Please try again.';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            message = xhr.responseJSON.message;
+                        }
+                        showNotification(message, 'error');
+                    },
+                    complete: function() {
+                        $btn.html(originalText).prop('disabled', false);
+                    }
+                });
+            });
+        });
+
+        // ============ ADD ANIMATION STYLES ============
+        $('<style>').prop('type', 'text/css').html(`
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateX(20px); }
+                to { opacity: 1; transform: translateX(0); }
+            }
+            .cart-notification-msg {
+                animation: fadeIn 0.3s ease-out;
+            }
+            #cart-notification {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                z-index: 9999;
+                min-width: 300px;
+            }
+        `).appendTo('head');
+    </script>
+</body>
+</html>
